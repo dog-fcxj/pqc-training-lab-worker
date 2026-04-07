@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PQC Training Lab</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">PQC Training Lab</p>
+          <h1>PQC 协议与工程实验台</h1>
+          <p class="lede">
+            聚焦 TLS、IKEv2、origin 侧、证书链与迁移代价的交互式资料页。
+          </p>
+        </div>
+        <div class="hero-panel">
+          <div class="metric">
+            <span class="metric-value">52%</span>
+            <span class="metric-label">2025 年末 Cloudflare human-generated Web 流量中的 PQ 加密占比</span>
+          </div>
+          <div class="metric">
+            <span class="metric-value">39% / 3.7%</span>
+            <span class="metric-label">公开网站支持率 / origin 支持率</span>
+          </div>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="PQC labs">
+        <button class="tab is-active" data-tab="handshake">Handshake Lab</button>
+        <button class="tab" data-tab="algorithm">Algorithm Lab</button>
+        <button class="tab" data-tab="migration">Migration Lab</button>
+      </nav>
+
+      <main class="panels">
+        <section class="panel is-active" id="panel-handshake">
+          <div class="panel-grid">
+            <article class="card">
+              <h2>场景选择</h2>
+              <div class="scenario-list" id="scenario-list"></div>
+            </article>
+            <article class="card">
+              <h2>定量对比与口径</h2>
+              <div id="scenario-detail"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-algorithm">
+          <div class="panel-grid two-wide">
+            <article class="card">
+              <h2>算法比较</h2>
+              <div id="algorithm-grid" class="algorithm-grid"></div>
+            </article>
+            <article class="card">
+              <h2>原理、对象与运算路径</h2>
+              <div id="algorithm-detail"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel" id="panel-migration">
+          <div class="panel-grid">
+            <article class="card">
+              <h2>系统画像</h2>
+              <form id="migration-form" class="checklist">
+                <label><input type="checkbox" name="long_lived_data" /> 有长期敏感数据</label>
+                <label><input type="checkbox" name="mobile_clients" /> 有移动端或弱网客户端</label>
+                <label><input type="checkbox" name="vpn_or_ipsec" /> 大量使用 VPN / IPsec</label>
+                <label><input type="checkbox" name="heavy_pki" /> 强依赖证书、CT、代码签名</label>
+                <label><input type="checkbox" name="origin_sprawl" /> 源站和反向代理很多</label>
+                <label><input type="checkbox" name="third_party_appliances" /> 严重依赖第三方网关 / HSM / 安全设备</label>
+              </form>
+            </article>
+            <article class="card">
+              <h2>迁移结果</h2>
+              <div id="migration-result"></div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p>数据与事实基于 NIST、IETF、Cloudflare 截至 2026-04-07 的公开资料。</p>
+      </footer>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
