@@ -10,15 +10,11 @@
   <body>
     <div class="app-shell">
       <nav class="view-nav" aria-label="PQC views">
-        <div class="nav-brand">
-          <span class="nav-mark"></span>
-          <span>PQC Training Lab</span>
-        </div>
         <div class="nav-actions">
-          <button class="view-link is-active" data-view="home">Overview</button>
-          <button class="view-link" data-view="handshake">Handshake</button>
-          <button class="view-link" data-view="algorithm">Algorithms</button>
+          <button class="view-link is-active" data-view="home">WHAT IS PQC?</button>
           <button class="view-link" data-view="principle">Principles</button>
+          <button class="view-link" data-view="algorithm">Algorithms</button>
+          <button class="view-link" data-view="handshake">Implementation</button>
         </div>
       </nav>
 
@@ -26,37 +22,28 @@
         <section class="page is-active" id="view-home">
           <section class="hero">
             <div class="hero-copy">
-              <p class="eyebrow">PQC Training Lab</p>
+              <p class="eyebrow">Post-Quantum Cryptography</p>
               <h1>
-                Post-Quantum<br />
-                Cryptography
+                POST-QUANTUM<br />
+                CRYPTOGRAPHY:<br />
+                SECURING THE<br />
+                FUTURE
               </h1>
               <p class="lede">
-                聚焦混合握手、NIST 正式算法、三类原理模型与部署量化口径的交互式资料页。
+                Protecting the digital world from the quantum compute threat with next-generation algorithms.
               </p>
               <div class="hero-cta">
-                <button class="cta-primary" data-go-view="algorithm">查看标准算法</button>
-                <button class="cta-secondary" data-go-view="principle">查看三类原理</button>
+                <button class="cta-primary" data-go-view="algorithm">EXPLORE THE STANDARDS</button>
+                <button class="cta-secondary" data-go-view="principle">VIEW THE PRINCIPLES</button>
               </div>
             </div>
             <div class="hero-lab">
               <div class="hero-visual">
-                <div class="hero-grid" id="hero-lattice-grid" aria-hidden="true"></div>
-                <div class="hero-basis basis-x" aria-hidden="true"></div>
-                <div class="hero-basis basis-y" aria-hidden="true"></div>
-                <div class="hero-point point-source" aria-hidden="true"></div>
-                <div class="hero-point point-noisy" aria-hidden="true"></div>
+                <svg class="hero-network" id="hero-network" viewBox="0 0 440 360" aria-hidden="true"></svg>
                 <div class="hero-noise-cloud" id="hero-noise-cloud" aria-hidden="true"></div>
-                <div class="hero-arrow" aria-hidden="true"></div>
-                <div class="hero-label label-source">A·s</div>
-                <div class="hero-label label-noise">+ e</div>
-                <div class="hero-label label-public">b = A·s + e</div>
+                <div class="hero-core-glow" aria-hidden="true"></div>
               </div>
-              <div class="hero-caption">
-                <span>规则格点</span>
-                <span>噪声偏移</span>
-                <span>公开观测值</span>
-              </div>
+              <button class="hero-visual-cta" data-go-view="algorithm">EXPLORE THE STANDARDS</button>
             </div>
           </section>
 

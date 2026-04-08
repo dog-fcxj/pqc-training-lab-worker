@@ -2,23 +2,48 @@ const overviewCards = [
   {
     id: "overview-lattice",
     tone: "cyan",
-    title: "格基主线",
-    text: "ML-KEM 与 ML-DSA 围绕 Module-LWE 与模块格签名组织，是当前主力路线。",
+    title: "THE QUANTUM THREAT",
+    text: "Classical encryption is vulnerable to future quantum computers.",
     target: "algorithm",
+    art: `
+      <div class="overview-art art-threat">
+        <span class="threat-equation">n = p * q</span>
+        <span class="threat-burst burst-a"></span>
+        <span class="threat-burst burst-b"></span>
+      </div>
+    `,
   },
   {
     id: "overview-hash",
     tone: "violet",
-    title: "哈希树签名",
-    text: "SLH-DSA 依赖哈希树、认证路径与大量哈希调用，提供独立于格的签名路线。",
+    title: "LATTICE-BASED CURE",
+    text: "The primary standardized defense, built on lattice math.",
     target: "principle",
+    art: `
+      <div class="overview-art art-lattice">
+        <div class="art-mesh">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+        <div class="art-shield"></div>
+      </div>
+    `,
   },
   {
     id: "overview-code",
     tone: "green",
-    title: "码基备选",
-    text: "HQC 通过带噪码字与纠错恢复提供非格基 KEM 备份路线。",
-    target: "principle",
+    title: "IMPLEMENTATION PATH",
+    text: "A deployment view covering handshake cost, objects, and protocol integration.",
+    target: "handshake",
+    art: `
+      <div class="overview-art art-path">
+        <span class="path-box server"></span>
+        <span class="path-box rocket"></span>
+        <span class="path-box cloud"></span>
+        <span class="path-arrow arrow-a"></span>
+        <span class="path-arrow arrow-b"></span>
+      </div>
+    `,
   },
 ];
 
@@ -360,13 +385,14 @@ const principleNoiseParticles = [
 
 const viewButtons = document.querySelectorAll(".view-link");
 const pageSections = document.querySelectorAll(".page");
+const pagesMount = document.querySelector(".pages");
 const scenarioList = document.getElementById("scenario-list");
 const scenarioDetail = document.getElementById("scenario-detail");
 const algorithmGrid = document.getElementById("algorithm-grid");
 const algorithmDetail = document.getElementById("algorithm-detail");
 const principleVisual = document.getElementById("principle-visual");
 const principleDetail = document.getElementById("principle-detail");
-const heroLatticeGrid = document.getElementById("hero-lattice-grid");
+const heroNetwork = document.getElementById("hero-network");
 const heroNoiseCloud = document.getElementById("hero-noise-cloud");
 const heroRings = document.getElementById("hero-rings");
 const overviewCardsMount = document.getElementById("overview-cards");
@@ -375,8 +401,15 @@ const RING_RADIUS = 42;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 let principleIndex = 0;
-let principleTimer = null;
 let activeView = "home";
+
+function syncPagesHeight() {
+  const activePage = document.getElementById(`view-${activeView}`);
+  if (!activePage || !pagesMount) {
+    return;
+  }
+  pagesMount.style.height = `${activePage.offsetHeight}px`;
+}
 
 function setActiveView(viewId) {
   activeView = viewId;
@@ -386,15 +419,14 @@ function setActiveView(viewId) {
   pageSections.forEach((section) => {
     section.classList.toggle("is-active", section.id === `view-${viewId}`);
   });
+  requestAnimationFrame(syncPagesHeight);
 }
 
 viewButtons.forEach((button) => {
   button.addEventListener("click", () => setActiveView(button.dataset.view));
 });
 
-document.querySelectorAll("[data-go-view]").forEach((button) => {
-  button.addEventListener("click", () => setActiveView(button.dataset.goView));
-});
+window.addEventListener("resize", syncPagesHeight);
 
 function formatMetricValue(metric, value) {
   if (value === null || value === undefined) {
@@ -429,7 +461,7 @@ function renderOverviewCards() {
       (card) => `
         <article class="overview-card tone-${card.tone}">
           <div class="overview-card-glow"></div>
-          <p class="overview-card-tag">${card.id.replace("overview-", "").toUpperCase()}</p>
+          ${card.art}
           <h3>${card.title}</h3>
           <p>${card.text}</p>
           <button type="button" class="card-link" data-go-view="${card.target}">进入页面</button>
@@ -480,13 +512,67 @@ function renderPacketBlocks(packet) {
   `;
 }
 
-function buildHeroLattice() {
-  heroLatticeGrid.innerHTML = Array.from({ length: 81 }, (_, index) => {
-    const row = Math.floor(index / 9);
-    const col = index % 9;
-    const isGuide = row === 4 || col === 4;
-    return `<span class="hero-grid-node${isGuide ? " is-guide" : ""}" style="--delay:${(row + col) * 70}ms"></span>`;
-  }).join("");
+function buildHeroNetwork() {
+  const nodes = [
+    { x: 76, y: 170, size: 8, tone: "cyan" },
+    { x: 118, y: 126, size: 7, tone: "green" },
+    { x: 164, y: 92, size: 9, tone: "blue" },
+    { x: 216, y: 72, size: 8, tone: "cyan" },
+    { x: 270, y: 92, size: 9, tone: "green" },
+    { x: 320, y: 130, size: 8, tone: "violet" },
+    { x: 340, y: 192, size: 7, tone: "green" },
+    { x: 304, y: 242, size: 8, tone: "violet" },
+    { x: 244, y: 272, size: 7, tone: "blue" },
+    { x: 178, y: 264, size: 9, tone: "green" },
+    { x: 130, y: 226, size: 8, tone: "cyan" },
+    { x: 204, y: 148, size: 10, tone: "violet" },
+    { x: 248, y: 156, size: 9, tone: "cyan" },
+    { x: 212, y: 208, size: 8, tone: "green" },
+    { x: 266, y: 206, size: 8, tone: "violet" },
+    { x: 160, y: 174, size: 7, tone: "blue" },
+  ];
+  const edges = [
+    [0, 1], [0, 10], [0, 15],
+    [1, 2], [1, 11], [1, 15],
+    [2, 3], [2, 11], [2, 12],
+    [3, 4], [3, 11], [3, 12],
+    [4, 5], [4, 12], [4, 14],
+    [5, 6], [5, 12], [5, 14],
+    [6, 7], [6, 14], [6, 12],
+    [7, 8], [7, 13], [7, 14],
+    [8, 9], [8, 13], [8, 14],
+    [9, 10], [9, 13], [9, 15],
+    [10, 15], [10, 13],
+    [11, 12], [11, 13], [11, 15],
+    [12, 13], [12, 14],
+    [13, 14], [13, 15],
+  ];
+
+  if (heroNetwork) {
+    heroNetwork.innerHTML = `
+      <defs>
+        <linearGradient id="hero-line-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#00E5FF"></stop>
+          <stop offset="50%" stop-color="#00C853"></stop>
+          <stop offset="100%" stop-color="#B85CFF"></stop>
+        </linearGradient>
+      </defs>
+      ${edges
+        .map(([from, to], index) => {
+          const start = nodes[from];
+          const end = nodes[to];
+          return `<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" style="animation-delay:${index * 70}ms"></line>`;
+        })
+        .join("")}
+      ${nodes
+        .map(
+          (node, index) => `
+            <circle cx="${node.x}" cy="${node.y}" r="${node.size}" class="tone-${node.tone}" style="animation-delay:${index * 110}ms"></circle>
+          `,
+        )
+        .join("")}
+    `;
+  }
 
   heroNoiseCloud.innerHTML = heroNoiseParticles
     .map(
@@ -835,7 +921,6 @@ function renderPrincipleVisual(family) {
     button.addEventListener("click", () => {
       principleIndex = Number(button.dataset.stage);
       renderPrinciple(principleIndex);
-      restartPrincipleLoop();
     });
   });
 }
@@ -871,22 +956,14 @@ function renderPrinciple(index) {
   renderPrincipleDetail(family);
 }
 
-function restartPrincipleLoop() {
-  if (principleTimer) {
-    clearInterval(principleTimer);
-  }
-
-  principleTimer = setInterval(() => {
-    principleIndex = (principleIndex + 1) % principleFamilies.length;
-    renderPrinciple(principleIndex);
-  }, 5200);
-}
-
 renderOverviewCards();
-buildHeroLattice();
+document.querySelectorAll("[data-go-view]").forEach((button) => {
+  button.addEventListener("click", () => setActiveView(button.dataset.goView));
+});
+buildHeroNetwork();
 renderHeroRings();
 renderScenario(handshakeScenarios[1].id);
 renderAlgorithm(algorithms[0].id);
 renderPrinciple(principleIndex);
-restartPrincipleLoop();
 setActiveView(activeView);
+syncPagesHeight();
