@@ -1,3 +1,27 @@
+const overviewCards = [
+  {
+    id: "overview-lattice",
+    tone: "cyan",
+    title: "格基主线",
+    text: "ML-KEM 与 ML-DSA 围绕 Module-LWE 与模块格签名组织，是当前主力路线。",
+    target: "algorithm",
+  },
+  {
+    id: "overview-hash",
+    tone: "violet",
+    title: "哈希树签名",
+    text: "SLH-DSA 依赖哈希树、认证路径与大量哈希调用，提供独立于格的签名路线。",
+    target: "principle",
+  },
+  {
+    id: "overview-code",
+    tone: "green",
+    title: "码基备选",
+    text: "HQC 通过带噪码字与纠错恢复提供非格基 KEM 备份路线。",
+    target: "principle",
+  },
+];
+
 const heroIndicators = [
   {
     percent: 52,
@@ -311,18 +335,15 @@ const principleFamilies = [
 ];
 
 const heroNoiseParticles = [
-  { x: -74, y: -42, size: 10, delay: 0 },
-  { x: -36, y: -70, size: 8, delay: 120 },
-  { x: 18, y: -78, size: 12, delay: 220 },
-  { x: 68, y: -34, size: 9, delay: 340 },
-  { x: 84, y: 14, size: 11, delay: 420 },
-  { x: 54, y: 60, size: 8, delay: 560 },
-  { x: 4, y: 78, size: 13, delay: 660 },
-  { x: -52, y: 62, size: 9, delay: 760 },
-  { x: -86, y: 12, size: 10, delay: 880 },
-  { x: -12, y: -26, size: 7, delay: 980 },
-  { x: 28, y: 22, size: 8, delay: 1120 },
-  { x: -24, y: 30, size: 7, delay: 1240 },
+  { x: 0, y: 0, size: 10, delay: 0 },
+  { x: 24, y: -16, size: 8, delay: 120 },
+  { x: -26, y: 20, size: 7, delay: 220 },
+  { x: 42, y: 10, size: 9, delay: 320 },
+  { x: -40, y: -18, size: 10, delay: 420 },
+  { x: 14, y: 36, size: 8, delay: 520 },
+  { x: -12, y: -38, size: 9, delay: 620 },
+  { x: 48, y: -34, size: 7, delay: 740 },
+  { x: -52, y: 34, size: 8, delay: 860 },
 ];
 
 const principleNoiseParticles = [
@@ -337,8 +358,8 @@ const principleNoiseParticles = [
   { x: -66, y: 10, size: 9, delay: 900 },
 ];
 
-const tabs = document.querySelectorAll(".tab");
-const panels = document.querySelectorAll(".panel");
+const viewButtons = document.querySelectorAll(".view-link");
+const pageSections = document.querySelectorAll(".page");
 const scenarioList = document.getElementById("scenario-list");
 const scenarioDetail = document.getElementById("scenario-detail");
 const algorithmGrid = document.getElementById("algorithm-grid");
@@ -348,21 +369,31 @@ const principleDetail = document.getElementById("principle-detail");
 const heroLatticeGrid = document.getElementById("hero-lattice-grid");
 const heroNoiseCloud = document.getElementById("hero-noise-cloud");
 const heroRings = document.getElementById("hero-rings");
+const overviewCardsMount = document.getElementById("overview-cards");
 
 const RING_RADIUS = 42;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 let principleIndex = 0;
 let principleTimer = null;
+let activeView = "home";
 
-tabs.forEach((tab) => {
-  tab.addEventListener("click", () => {
-    const target = tab.dataset.tab;
-    tabs.forEach((item) => item.classList.toggle("is-active", item === tab));
-    panels.forEach((panel) => {
-      panel.classList.toggle("is-active", panel.id === `panel-${target}`);
-    });
+function setActiveView(viewId) {
+  activeView = viewId;
+  viewButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.view === viewId);
   });
+  pageSections.forEach((section) => {
+    section.classList.toggle("is-active", section.id === `view-${viewId}`);
+  });
+}
+
+viewButtons.forEach((button) => {
+  button.addEventListener("click", () => setActiveView(button.dataset.view));
+});
+
+document.querySelectorAll("[data-go-view]").forEach((button) => {
+  button.addEventListener("click", () => setActiveView(button.dataset.goView));
 });
 
 function formatMetricValue(metric, value) {
@@ -390,6 +421,26 @@ function animatePercentValue(element, target, precision) {
   }
 
   requestAnimationFrame(frame);
+}
+
+function renderOverviewCards() {
+  overviewCardsMount.innerHTML = overviewCards
+    .map(
+      (card) => `
+        <article class="overview-card tone-${card.tone}">
+          <div class="overview-card-glow"></div>
+          <p class="overview-card-tag">${card.id.replace("overview-", "").toUpperCase()}</p>
+          <h3>${card.title}</h3>
+          <p>${card.text}</p>
+          <button type="button" class="card-link" data-go-view="${card.target}">进入页面</button>
+        </article>
+      `,
+    )
+    .join("");
+
+  overviewCardsMount.querySelectorAll("[data-go-view]").forEach((button) => {
+    button.addEventListener("click", () => setActiveView(button.dataset.goView));
+  });
 }
 
 function renderFactGrid(facts) {
@@ -430,35 +481,26 @@ function renderPacketBlocks(packet) {
 }
 
 function buildHeroLattice() {
-  if (heroLatticeGrid) {
-    heroLatticeGrid.innerHTML = Array.from({ length: 49 }, (_, index) => {
-      const row = Math.floor(index / 7);
-      const col = index % 7;
-      const isAxis = row === 3 || col === 3;
-      const isCore = row === 3 && col === 3;
-      return `<span class="hero-grid-node${isAxis ? " is-axis" : ""}${isCore ? " is-core" : ""}" style="--delay:${(row + col) * 90}ms"></span>`;
-    }).join("");
-  }
+  heroLatticeGrid.innerHTML = Array.from({ length: 81 }, (_, index) => {
+    const row = Math.floor(index / 9);
+    const col = index % 9;
+    const isGuide = row === 4 || col === 4;
+    return `<span class="hero-grid-node${isGuide ? " is-guide" : ""}" style="--delay:${(row + col) * 70}ms"></span>`;
+  }).join("");
 
-  if (heroNoiseCloud) {
-    heroNoiseCloud.innerHTML = heroNoiseParticles
-      .map(
-        (particle) => `
-          <span
-            class="hero-noise-dot"
-            style="--x:${particle.x}px;--y:${particle.y}px;--size:${particle.size}px;--delay:${particle.delay}ms"
-          ></span>
-        `,
-      )
-      .join("");
-  }
+  heroNoiseCloud.innerHTML = heroNoiseParticles
+    .map(
+      (particle) => `
+        <span
+          class="hero-noise-dot"
+          style="--x:${particle.x}px;--y:${particle.y}px;--size:${particle.size}px;--delay:${particle.delay}ms"
+        ></span>
+      `,
+    )
+    .join("");
 }
 
 function renderHeroRings() {
-  if (!heroRings) {
-    return;
-  }
-
   heroRings.innerHTML = heroIndicators
     .map(
       (item) => `
@@ -495,7 +537,7 @@ function renderHeroRings() {
       setTimeout(() => {
         ring.style.strokeDashoffset = `${RING_CIRCUMFERENCE * (1 - percent / 100)}`;
         animatePercentValue(value, percent, precision);
-      }, 120 + index * 140);
+      }, 160 + index * 140);
     });
   });
 }
@@ -567,23 +609,23 @@ function renderScenario(id) {
   scenarioDetail.innerHTML = `
     <div class="detail-section">
       <span class="label">${scenario.badge}</span>
-      <h3>${scenario.label}</h3>
+      <h4>${scenario.label}</h4>
       <p>${scenario.summary}</p>
     </div>
     <div class="detail-section">
-      <h3>对象与口径</h3>
+      <h4>对象与口径</h4>
       <div class="fact-grid">${renderFactGrid(scenario.facts)}</div>
     </div>
     <div class="detail-section">
-      <h3>包体可视化</h3>
+      <h4>包体可视化</h4>
       ${renderPacketBlocks(scenario.packet)}
     </div>
     <div class="detail-section">
-      <h3>跨场景对比</h3>
+      <h4>跨场景对比</h4>
       <div class="compare-grid">${renderComparisonRows(scenario.id)}</div>
     </div>
     <div class="detail-section">
-      <h3>约束来源</h3>
+      <h4>约束来源</h4>
       <ul class="detail-list">${notes}</ul>
     </div>
   `;
@@ -620,19 +662,19 @@ function renderAlgorithm(id) {
   algorithmDetail.innerHTML = `
     <div class="detail-section">
       <span class="label">${item.role}</span>
-      <h3>${item.name}</h3>
+      <h4>${item.name}</h4>
       <p>${item.why}</p>
     </div>
     <div class="detail-section">
-      <h3>对象与运算</h3>
+      <h4>对象与运算</h4>
       <div class="fact-grid">${renderFactGrid(item.facts)}</div>
     </div>
     <div class="detail-section">
-      <h3>${item.pathTitle}</h3>
+      <h4>${item.pathTitle}</h4>
       <ol class="step-list">${steps}</ol>
     </div>
     <div class="detail-section">
-      <h3>${item.formulaTitle}</h3>
+      <h4>${item.formulaTitle}</h4>
       <pre class="formula-block">${item.formula}</pre>
       <p class="subtle">${item.takeaway}</p>
     </div>
@@ -653,40 +695,40 @@ function renderHashTreeVisual() {
   return `
     <div class="principle-viewport visual-hash">
       <svg class="hash-tree-svg" viewBox="0 0 360 300" aria-hidden="true">
-        <line x1="180" y1="40" x2="118" y2="92" class="tree-line auth"></line>
-        <line x1="180" y1="40" x2="242" y2="92" class="tree-line"></line>
-        <line x1="118" y1="92" x2="86" y2="144" class="tree-line auth"></line>
-        <line x1="118" y1="92" x2="150" y2="144" class="tree-line"></line>
-        <line x1="242" y1="92" x2="210" y2="144" class="tree-line"></line>
-        <line x1="242" y1="92" x2="274" y2="144" class="tree-line"></line>
-        <line x1="86" y1="144" x2="62" y2="212" class="tree-line"></line>
-        <line x1="86" y1="144" x2="110" y2="212" class="tree-line auth"></line>
-        <line x1="150" y1="144" x2="134" y2="212" class="tree-line"></line>
-        <line x1="150" y1="144" x2="172" y2="212" class="tree-line"></line>
-        <line x1="210" y1="144" x2="196" y2="212" class="tree-line"></line>
-        <line x1="210" y1="144" x2="224" y2="212" class="tree-line"></line>
-        <line x1="274" y1="144" x2="258" y2="212" class="tree-line"></line>
-        <line x1="274" y1="144" x2="298" y2="212" class="tree-line"></line>
+        <line x1="180" y1="40" x2="122" y2="94" class="tree-line auth"></line>
+        <line x1="180" y1="40" x2="238" y2="94" class="tree-line"></line>
+        <line x1="122" y1="94" x2="90" y2="148" class="tree-line auth"></line>
+        <line x1="122" y1="94" x2="154" y2="148" class="tree-line"></line>
+        <line x1="238" y1="94" x2="206" y2="148" class="tree-line"></line>
+        <line x1="238" y1="94" x2="270" y2="148" class="tree-line"></line>
+        <line x1="90" y1="148" x2="66" y2="220" class="tree-line"></line>
+        <line x1="90" y1="148" x2="114" y2="220" class="tree-line auth"></line>
+        <line x1="154" y1="148" x2="138" y2="220" class="tree-line"></line>
+        <line x1="154" y1="148" x2="176" y2="220" class="tree-line"></line>
+        <line x1="206" y1="148" x2="192" y2="220" class="tree-line"></line>
+        <line x1="206" y1="148" x2="220" y2="220" class="tree-line"></line>
+        <line x1="270" y1="148" x2="254" y2="220" class="tree-line"></line>
+        <line x1="270" y1="148" x2="294" y2="220" class="tree-line"></line>
 
         <circle cx="180" cy="40" r="16" class="tree-node root"></circle>
-        <circle cx="118" cy="92" r="14" class="tree-node auth"></circle>
-        <circle cx="242" cy="92" r="14" class="tree-node"></circle>
-        <circle cx="86" cy="144" r="13" class="tree-node auth"></circle>
-        <circle cx="150" cy="144" r="13" class="tree-node"></circle>
-        <circle cx="210" cy="144" r="13" class="tree-node"></circle>
-        <circle cx="274" cy="144" r="13" class="tree-node"></circle>
-        <circle cx="62" cy="212" r="11" class="tree-node"></circle>
-        <circle cx="110" cy="212" r="11" class="tree-node selected"></circle>
-        <circle cx="134" cy="212" r="11" class="tree-node auth"></circle>
-        <circle cx="172" cy="212" r="11" class="tree-node"></circle>
-        <circle cx="196" cy="212" r="11" class="tree-node"></circle>
-        <circle cx="224" cy="212" r="11" class="tree-node"></circle>
-        <circle cx="258" cy="212" r="11" class="tree-node"></circle>
-        <circle cx="298" cy="212" r="11" class="tree-node"></circle>
+        <circle cx="122" cy="94" r="14" class="tree-node auth"></circle>
+        <circle cx="238" cy="94" r="14" class="tree-node"></circle>
+        <circle cx="90" cy="148" r="13" class="tree-node auth"></circle>
+        <circle cx="154" cy="148" r="13" class="tree-node"></circle>
+        <circle cx="206" cy="148" r="13" class="tree-node"></circle>
+        <circle cx="270" cy="148" r="13" class="tree-node"></circle>
+        <circle cx="66" cy="220" r="11" class="tree-node"></circle>
+        <circle cx="114" cy="220" r="11" class="tree-node selected"></circle>
+        <circle cx="138" cy="220" r="11" class="tree-node auth"></circle>
+        <circle cx="176" cy="220" r="11" class="tree-node"></circle>
+        <circle cx="192" cy="220" r="11" class="tree-node"></circle>
+        <circle cx="220" cy="220" r="11" class="tree-node"></circle>
+        <circle cx="254" cy="220" r="11" class="tree-node"></circle>
+        <circle cx="294" cy="220" r="11" class="tree-node"></circle>
       </svg>
-      <div class="hash-tag tag-leaf">消息叶</div>
-      <div class="hash-tag tag-auth">认证路径</div>
       <div class="hash-tag tag-root">公开根</div>
+      <div class="hash-tag tag-auth">认证路径</div>
+      <div class="hash-tag tag-leaf">消息叶</div>
     </div>
     <div class="visual-legend">
       <span>1. 叶节点选中</span>
@@ -802,21 +844,21 @@ function renderPrincipleDetail(family) {
   principleDetail.innerHTML = `
     <div class="detail-section">
       <span class="label">${family.label}</span>
-      <h3>${family.title}</h3>
+      <h4>${family.title}</h4>
       <p>${family.intro}</p>
     </div>
     <div class="detail-section">
-      <h3>结构观察点</h3>
+      <h4>结构观察点</h4>
       <div class="fact-grid">${renderFactGrid(family.facts)}</div>
     </div>
     <div class="detail-section">
-      <h3>运算路径</h3>
+      <h4>运算路径</h4>
       <ul class="detail-list">
         ${family.steps.map((item) => `<li>${item}</li>`).join("")}
       </ul>
     </div>
     <div class="detail-section">
-      <h3>${family.formulaTitle}</h3>
+      <h4>${family.formulaTitle}</h4>
       <pre class="formula-block">${family.formula}</pre>
       <p class="subtle">${family.takeaway}</p>
     </div>
@@ -840,9 +882,11 @@ function restartPrincipleLoop() {
   }, 5200);
 }
 
+renderOverviewCards();
 buildHeroLattice();
 renderHeroRings();
 renderScenario(handshakeScenarios[1].id);
 renderAlgorithm(algorithms[0].id);
 renderPrinciple(principleIndex);
 restartPrincipleLoop();
+setActiveView(activeView);

@@ -8,71 +8,123 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">PQC Training Lab</p>
-          <h1>PQC 协议与<br />工程实验台</h1>
-          <p class="lede">
-            聚焦 TLS、IKEv2、对象尺寸、三类原理模型与部署量化口径的交互式资料页。
-          </p>
+    <div class="app-shell">
+      <nav class="view-nav" aria-label="PQC views">
+        <div class="nav-brand">
+          <span class="nav-mark"></span>
+          <span>PQC Training Lab</span>
         </div>
-        <div class="hero-panel">
-          <div class="hero-visual">
-            <div class="hero-lattice-grid" id="hero-lattice-grid" aria-hidden="true"></div>
-            <div class="hero-core-marker" aria-hidden="true"></div>
-            <div class="hero-noise-cloud" id="hero-noise-cloud" aria-hidden="true"></div>
-            <div class="hero-wave wave-a" aria-hidden="true"></div>
-            <div class="hero-wave wave-b" aria-hidden="true"></div>
-            <div class="hero-chip chip-cyan">ML-KEM</div>
-            <div class="hero-chip chip-green">SLH-DSA</div>
-            <div class="hero-chip chip-violet">HQC</div>
-          </div>
-          <div class="hero-stats" id="hero-rings"></div>
+        <div class="nav-actions">
+          <button class="view-link is-active" data-view="home">Overview</button>
+          <button class="view-link" data-view="handshake">Handshake</button>
+          <button class="view-link" data-view="algorithm">Algorithms</button>
+          <button class="view-link" data-view="principle">Principles</button>
         </div>
-      </header>
-
-      <nav class="tabs" aria-label="PQC labs">
-        <button class="tab is-active" data-tab="handshake">Handshake Lab</button>
-        <button class="tab" data-tab="algorithm">Algorithm Lab</button>
-        <button class="tab" data-tab="principle">Principle Intro</button>
       </nav>
 
-      <main class="panels">
-        <section class="panel is-active" id="panel-handshake">
+      <main class="pages">
+        <section class="page is-active" id="view-home">
+          <section class="hero">
+            <div class="hero-copy">
+              <p class="eyebrow">PQC Training Lab</p>
+              <h1>
+                Post-Quantum<br />
+                Cryptography
+              </h1>
+              <p class="lede">
+                聚焦混合握手、NIST 正式算法、三类原理模型与部署量化口径的交互式资料页。
+              </p>
+              <div class="hero-cta">
+                <button class="cta-primary" data-go-view="algorithm">查看标准算法</button>
+                <button class="cta-secondary" data-go-view="principle">查看三类原理</button>
+              </div>
+            </div>
+            <div class="hero-lab">
+              <div class="hero-visual">
+                <div class="hero-grid" id="hero-lattice-grid" aria-hidden="true"></div>
+                <div class="hero-basis basis-x" aria-hidden="true"></div>
+                <div class="hero-basis basis-y" aria-hidden="true"></div>
+                <div class="hero-point point-source" aria-hidden="true"></div>
+                <div class="hero-point point-noisy" aria-hidden="true"></div>
+                <div class="hero-noise-cloud" id="hero-noise-cloud" aria-hidden="true"></div>
+                <div class="hero-arrow" aria-hidden="true"></div>
+                <div class="hero-label label-source">A·s</div>
+                <div class="hero-label label-noise">+ e</div>
+                <div class="hero-label label-public">b = A·s + e</div>
+              </div>
+              <div class="hero-caption">
+                <span>规则格点</span>
+                <span>噪声偏移</span>
+                <span>公开观测值</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="overview-cards" id="overview-cards"></section>
+
+          <section class="telemetry-panel">
+            <div class="section-head">
+              <p class="section-kicker">Cloudflare End-of-2025 Telemetry</p>
+              <h2>部署现状</h2>
+            </div>
+            <div class="hero-stats" id="hero-rings"></div>
+          </section>
+
+          <section class="signal-strip">
+            <span>NIST</span>
+            <span>ML-KEM</span>
+            <span>ML-DSA</span>
+            <span>SLH-DSA</span>
+            <span>HQC</span>
+          </section>
+        </section>
+
+        <section class="page" id="view-handshake">
+          <div class="page-head">
+            <p class="section-kicker">Protocol Payload</p>
+            <h2>Handshake Lab</h2>
+          </div>
           <div class="panel-grid">
             <article class="card">
-              <h2>场景选择</h2>
+              <h3>场景选择</h3>
               <div class="scenario-list" id="scenario-list"></div>
             </article>
             <article class="card">
-              <h2>定量对比与口径</h2>
+              <h3>定量对比与口径</h3>
               <div id="scenario-detail"></div>
             </article>
           </div>
         </section>
 
-        <section class="panel" id="panel-algorithm">
+        <section class="page" id="view-algorithm">
+          <div class="page-head">
+            <p class="section-kicker">NIST Standards</p>
+            <h2>Algorithms</h2>
+          </div>
           <div class="panel-grid two-wide">
             <article class="card">
-              <h2>算法比较</h2>
+              <h3>算法比较</h3>
               <div id="algorithm-grid" class="algorithm-grid"></div>
             </article>
             <article class="card">
-              <h2>原理、对象与运算路径</h2>
+              <h3>原理、对象与运算路径</h3>
               <div id="algorithm-detail"></div>
             </article>
           </div>
         </section>
 
-        <section class="panel" id="panel-principle">
+        <section class="page" id="view-principle">
+          <div class="page-head">
+            <p class="section-kicker">Core Logic</p>
+            <h2>Principles</h2>
+          </div>
           <div class="panel-grid">
             <article class="card">
-              <h2>三类原理动图</h2>
+              <h3>三类原理动图</h3>
               <div id="principle-visual"></div>
             </article>
             <article class="card">
-              <h2>结构与运算说明</h2>
+              <h3>结构与运算说明</h3>
               <div id="principle-detail"></div>
             </article>
           </div>
