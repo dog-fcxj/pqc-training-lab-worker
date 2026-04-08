@@ -334,8 +334,8 @@ const principleNoiseParticles = [
   { x: -66, y: 10, size: 9, delay: 900 },
 ];
 
-const viewButtons = document.querySelectorAll(".view-link");
-const pageSections = document.querySelectorAll(".page");
+const navButtons = document.querySelectorAll(".view-link");
+const contentSections = document.querySelectorAll(".content-section");
 const scenarioList = document.getElementById("scenario-list");
 const scenarioDetail = document.getElementById("scenario-detail");
 const algorithmGrid = document.getElementById("algorithm-grid");
@@ -350,25 +350,45 @@ const RING_RADIUS = 42;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 let principleIndex = 0;
-let activeView = "home";
+let activeSectionId = "section-intro";
 
-function setActiveView(viewId) {
-  if (viewId === activeView) {
-    return;
-  }
-
-  activeView = viewId;
-  viewButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.view === viewId);
-  });
-  pageSections.forEach((section) => {
-    section.classList.toggle("is-active", section.id === `view-${viewId}`);
+function setActiveNav(targetId) {
+  activeSectionId = targetId;
+  navButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.target === targetId);
   });
 }
 
-viewButtons.forEach((button) => {
-  button.addEventListener("click", () => setActiveView(button.dataset.view));
+function scrollToSection(targetId) {
+  const target = document.getElementById(targetId);
+  if (!target) {
+    return;
+  }
+
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+  setActiveNav(targetId);
+}
+
+navButtons.forEach((button) => {
+  button.addEventListener("click", () => scrollToSection(button.dataset.target));
 });
+
+function updateActiveFromScroll() {
+  let closestSection = contentSections[0];
+  let closestDistance = Number.POSITIVE_INFINITY;
+
+  contentSections.forEach((section) => {
+    const distance = Math.abs(section.getBoundingClientRect().top - 160);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestSection = section;
+    }
+  });
+
+  if (closestSection) {
+    setActiveNav(closestSection.id);
+  }
+}
 
 function formatMetricValue(metric, value) {
   if (value === null || value === undefined) {
@@ -878,11 +898,17 @@ function renderPrinciple(index) {
   renderPrincipleDetail(family);
 }
 
-document.querySelectorAll("[data-go-view]").forEach((button) => {
-  button.addEventListener("click", () => setActiveView(button.dataset.goView));
+document.querySelectorAll("[data-target]").forEach((button) => {
+  if (!button.classList.contains("view-link")) {
+    button.addEventListener("click", () => scrollToSection(button.dataset.target));
+  }
 });
 buildHeroNetwork();
 renderHeroRings();
 renderScenario(handshakeScenarios[1].id);
 renderAlgorithm(algorithms[0].id);
 renderPrinciple(principleIndex);
+setActiveNav(activeSectionId);
+window.addEventListener("scroll", updateActiveFromScroll, { passive: true });
+window.addEventListener("resize", updateActiveFromScroll);
+updateActiveFromScroll();

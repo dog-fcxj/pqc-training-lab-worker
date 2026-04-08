@@ -9,32 +9,31 @@
   </head>
   <body>
     <div class="app-shell">
-      <nav class="view-nav" aria-label="PQC views">
+      <nav class="view-nav" aria-label="PQC 导航">
         <div class="nav-actions">
-          <button class="view-link is-active" data-view="home">WHAT IS PQC?</button>
-          <button class="view-link" data-view="principle">Principles</button>
-          <button class="view-link" data-view="algorithm">Algorithms</button>
-          <button class="view-link" data-view="handshake">Implementation</button>
+          <button class="view-link is-active" data-target="section-intro">什么是 PQC</button>
+          <button class="view-link" data-target="section-principle">原理介绍</button>
+          <button class="view-link" data-target="section-algorithm">标准算法</button>
+          <button class="view-link" data-target="section-handshake">工程实现</button>
         </div>
       </nav>
 
-      <main class="pages">
-        <section class="page is-active" id="view-home">
-          <section class="hero">
+      <main class="content-sections">
+        <section class="content-section intro-section" id="section-intro">
+          <header class="hero">
             <div class="hero-copy">
-              <p class="eyebrow">Post-Quantum Cryptography</p>
+              <p class="eyebrow">后量子密码学</p>
               <h1>
-                POST-QUANTUM<br />
-                CRYPTOGRAPHY:<br />
-                SECURING THE<br />
-                FUTURE
+                后量子密码学：<br />
+                面向未来的<br />
+                安全基座
               </h1>
               <p class="lede">
-                Protecting the digital world from the quantum compute threat with next-generation algorithms.
+                面向量子计算威胁的下一代密码体系，覆盖标准算法、底层原理、握手代价与部署现状。
               </p>
               <div class="hero-cta">
-                <button class="cta-primary" data-go-view="algorithm">EXPLORE THE STANDARDS</button>
-                <button class="cta-secondary" data-go-view="principle">VIEW THE PRINCIPLES</button>
+                <button class="cta-primary" data-target="section-algorithm">查看标准算法</button>
+                <button class="cta-secondary" data-target="section-principle">查看三类原理</button>
               </div>
             </div>
             <div class="hero-lab">
@@ -43,46 +42,46 @@
                 <div class="hero-noise-cloud" id="hero-noise-cloud" aria-hidden="true"></div>
                 <div class="hero-core-glow" aria-hidden="true"></div>
               </div>
-              <button class="hero-visual-cta" data-go-view="algorithm">EXPLORE THE STANDARDS</button>
+              <button class="hero-visual-cta" data-target="section-algorithm">进入标准算法</button>
             </div>
             <div class="hero-home-foot">
               <div class="hero-home-head">
-                <p class="section-kicker">Cloudflare End-of-2025 Telemetry</p>
+                <p class="section-kicker">Cloudflare 2025 年末公开口径</p>
                 <h2>部署现状</h2>
               </div>
               <div class="hero-stats" id="hero-rings"></div>
-              <section class="signal-strip">
+              <div class="signal-strip">
                 <span>NIST</span>
                 <span>ML-KEM</span>
                 <span>ML-DSA</span>
                 <span>SLH-DSA</span>
                 <span>HQC</span>
-              </section>
+              </div>
             </div>
-          </section>
+          </header>
         </section>
 
-        <section class="page" id="view-handshake">
+        <section class="content-section" id="section-principle">
           <div class="page-head">
-            <p class="section-kicker">Protocol Payload</p>
-            <h2>Handshake Lab</h2>
+            <p class="section-kicker">Core Logic</p>
+            <h2>三类原理模型</h2>
           </div>
           <div class="panel-grid">
             <article class="card">
-              <h3>场景选择</h3>
-              <div class="scenario-list" id="scenario-list"></div>
+              <h3>原理动图</h3>
+              <div id="principle-visual"></div>
             </article>
             <article class="card">
-              <h3>定量对比与口径</h3>
-              <div id="scenario-detail"></div>
+              <h3>结构与运算说明</h3>
+              <div id="principle-detail"></div>
             </article>
           </div>
         </section>
 
-        <section class="page" id="view-algorithm">
+        <section class="content-section" id="section-algorithm">
           <div class="page-head">
             <p class="section-kicker">NIST Standards</p>
-            <h2>Algorithms</h2>
+            <h2>标准算法与对象</h2>
           </div>
           <div class="panel-grid two-wide">
             <article class="card">
@@ -96,19 +95,19 @@
           </div>
         </section>
 
-        <section class="page" id="view-principle">
+        <section class="content-section" id="section-handshake">
           <div class="page-head">
-            <p class="section-kicker">Core Logic</p>
-            <h2>Principles</h2>
+            <p class="section-kicker">Protocol Payload</p>
+            <h2>握手与部署实现</h2>
           </div>
           <div class="panel-grid">
             <article class="card">
-              <h3>三类原理动图</h3>
-              <div id="principle-visual"></div>
+              <h3>场景选择</h3>
+              <div class="scenario-list" id="scenario-list"></div>
             </article>
             <article class="card">
-              <h3>结构与运算说明</h3>
-              <div id="principle-detail"></div>
+              <h3>定量对比与口径</h3>
+              <div id="scenario-detail"></div>
             </article>
           </div>
         </section>
