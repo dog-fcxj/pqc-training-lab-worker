@@ -1,52 +1,3 @@
-const overviewCards = [
-  {
-    id: "overview-lattice",
-    tone: "cyan",
-    title: "THE QUANTUM THREAT",
-    text: "Classical encryption is vulnerable to future quantum computers.",
-    target: "algorithm",
-    art: `
-      <div class="overview-art art-threat">
-        <span class="threat-equation">n = p * q</span>
-        <span class="threat-burst burst-a"></span>
-        <span class="threat-burst burst-b"></span>
-      </div>
-    `,
-  },
-  {
-    id: "overview-hash",
-    tone: "violet",
-    title: "LATTICE-BASED CURE",
-    text: "The primary standardized defense, built on lattice math.",
-    target: "principle",
-    art: `
-      <div class="overview-art art-lattice">
-        <div class="art-mesh">
-          <span></span><span></span><span></span><span></span><span></span><span></span>
-          <span></span><span></span><span></span>
-        </div>
-        <div class="art-shield"></div>
-      </div>
-    `,
-  },
-  {
-    id: "overview-code",
-    tone: "green",
-    title: "IMPLEMENTATION PATH",
-    text: "A deployment view covering handshake cost, objects, and protocol integration.",
-    target: "handshake",
-    art: `
-      <div class="overview-art art-path">
-        <span class="path-box server"></span>
-        <span class="path-box rocket"></span>
-        <span class="path-box cloud"></span>
-        <span class="path-arrow arrow-a"></span>
-        <span class="path-arrow arrow-b"></span>
-      </div>
-    `,
-  },
-];
-
 const heroIndicators = [
   {
     percent: 52,
@@ -385,7 +336,6 @@ const principleNoiseParticles = [
 
 const viewButtons = document.querySelectorAll(".view-link");
 const pageSections = document.querySelectorAll(".page");
-const pagesMount = document.querySelector(".pages");
 const scenarioList = document.getElementById("scenario-list");
 const scenarioDetail = document.getElementById("scenario-detail");
 const algorithmGrid = document.getElementById("algorithm-grid");
@@ -395,7 +345,6 @@ const principleDetail = document.getElementById("principle-detail");
 const heroNetwork = document.getElementById("hero-network");
 const heroNoiseCloud = document.getElementById("hero-noise-cloud");
 const heroRings = document.getElementById("hero-rings");
-const overviewCardsMount = document.getElementById("overview-cards");
 
 const RING_RADIUS = 42;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -403,15 +352,11 @@ const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 let principleIndex = 0;
 let activeView = "home";
 
-function syncPagesHeight() {
-  const activePage = document.getElementById(`view-${activeView}`);
-  if (!activePage || !pagesMount) {
+function setActiveView(viewId) {
+  if (viewId === activeView) {
     return;
   }
-  pagesMount.style.height = `${activePage.offsetHeight}px`;
-}
 
-function setActiveView(viewId) {
   activeView = viewId;
   viewButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.view === viewId);
@@ -419,14 +364,11 @@ function setActiveView(viewId) {
   pageSections.forEach((section) => {
     section.classList.toggle("is-active", section.id === `view-${viewId}`);
   });
-  requestAnimationFrame(syncPagesHeight);
 }
 
 viewButtons.forEach((button) => {
   button.addEventListener("click", () => setActiveView(button.dataset.view));
 });
-
-window.addEventListener("resize", syncPagesHeight);
 
 function formatMetricValue(metric, value) {
   if (value === null || value === undefined) {
@@ -453,26 +395,6 @@ function animatePercentValue(element, target, precision) {
   }
 
   requestAnimationFrame(frame);
-}
-
-function renderOverviewCards() {
-  overviewCardsMount.innerHTML = overviewCards
-    .map(
-      (card) => `
-        <article class="overview-card tone-${card.tone}">
-          <div class="overview-card-glow"></div>
-          ${card.art}
-          <h3>${card.title}</h3>
-          <p>${card.text}</p>
-          <button type="button" class="card-link" data-go-view="${card.target}">进入页面</button>
-        </article>
-      `,
-    )
-    .join("");
-
-  overviewCardsMount.querySelectorAll("[data-go-view]").forEach((button) => {
-    button.addEventListener("click", () => setActiveView(button.dataset.goView));
-  });
 }
 
 function renderFactGrid(facts) {
@@ -956,7 +878,6 @@ function renderPrinciple(index) {
   renderPrincipleDetail(family);
 }
 
-renderOverviewCards();
 document.querySelectorAll("[data-go-view]").forEach((button) => {
   button.addEventListener("click", () => setActiveView(button.dataset.goView));
 });
@@ -965,5 +886,3 @@ renderHeroRings();
 renderScenario(handshakeScenarios[1].id);
 renderAlgorithm(algorithms[0].id);
 renderPrinciple(principleIndex);
-setActiveView(activeView);
-syncPagesHeight();
