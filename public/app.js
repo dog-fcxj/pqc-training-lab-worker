@@ -4,21 +4,21 @@ const handshakeMetrics = [
     label: "C -> S 额外握手字节",
     unit: "B",
     max: 1200,
-    note: "TLS 的 1200 B 来自 Cloudflare 公开的端到端观测；IKEv2 未公开统一的固定增量。",
+    note: "TLS 的 1200 B 来自 Cloudflare 公开观测；IKEv2 没有统一公开固定增量。",
   },
   {
     key: "serverExtraBytes",
     label: "S -> C 额外握手字节",
     unit: "B",
     max: 1100,
-    note: "TLS 的 1100 B 来自 Cloudflare 公开的端到端观测；IKEv2 以对象尺寸而非统一固定增量来讨论。",
+    note: "TLS 的 1100 B 来自 Cloudflare 公开观测；IKEv2 更常按对象尺寸与消息分片讨论。",
   },
   {
     key: "largestNewObject",
     label: "新增单个对象大小",
     unit: "B",
     max: 1184,
-    note: "ML-KEM-768 的 public key 为 1184 B，ciphertext 为 1088 B；这组对象会直接进入协议消息。",
+    note: "ML-KEM-768 public key 为 1184 B，ciphertext 为 1088 B，这组对象会直接进入协议消息。",
   },
 ];
 
@@ -39,6 +39,13 @@ const handshakeScenarios = [
       ["长期保密性", "不覆盖量子对手场景"],
       ["用途", "作为 classical baseline"],
     ],
+    packet: {
+      lead: "Classical 路径里，key share 仍维持在几十字节量级。",
+      blocks: [
+        { label: "32B", tone: "base" },
+        { label: "X25519", tone: "ghost", flex: true },
+      ],
+    },
     notes: [
       "今天大多数 TLS 1.3 部署仍以 X25519 为基线。",
       "对象最小、兼容性最好，但不提供 post-quantum key agreement。",
@@ -61,6 +68,15 @@ const handshakeScenarios = [
       ["握手时间回归", "约 4%"],
       ["状态", "draft-ietf-tls-ecdhe-mlkem 已提交 IESG"],
     ],
+    packet: {
+      lead: "Hybrid 的新增代价主要来自 PQ 对象进入握手，证书链通常仍沿用传统路径。",
+      blocks: [
+        { label: "32B", tone: "base" },
+        { label: "pk", tone: "cyan", repeat: 6 },
+        { label: "ct", tone: "violet", repeat: 5 },
+        { label: "KDF", tone: "green" },
+      ],
+    },
     notes: [
       "Cloudflare 文档将 X25519MLKEM768 作为推荐 hybrid key agreement。",
       "公开部署中最常见的定量变化是握手字节增长，证书链通常仍沿用传统路径。",
@@ -83,6 +99,16 @@ const handshakeScenarios = [
       ["主要压力", "分片 / PMTU / 重传 / 网关固件"],
       ["状态", "draft-ietf-ipsecme-ikev2-mlkem 已提交 IESG"],
     ],
+    packet: {
+      lead: "IKEv2 场景里更重要的是对象进入消息后是否触发分片与重传，通常不会收敛成单一固定值。",
+      blocks: [
+        { label: "HDR", tone: "base" },
+        { label: "SA", tone: "ghost" },
+        { label: "KE", tone: "cyan", repeat: 6 },
+        { label: "N", tone: "violet", repeat: 3 },
+        { label: "frag?", tone: "green", flex: true },
+      ],
+    },
     notes: [
       "IKEv2 更常按对象尺寸、分片和网关资源边界来讨论，通常不会收敛成单一固定字节增量。",
       "ML-KEM 对象进入 IKE 交换后，PMTU 与 fragmentation 会直接影响行为。",
@@ -113,13 +139,7 @@ const algorithms = [
       "ML-KEM 在此基础上组织出 KeyGen / Encaps / Decaps，并在 Decaps 中处理 FO transform 与 failure semantics。",
     ],
     formulaTitle: "玩具 LWE 例子",
-    formula: [
-      "q = 23",
-      "A = [[19, 7], [3, 11]]",
-      "s = [5, 2]",
-      "e = [1, -1]",
-      "b = A*s + e mod 23 = [18, 13]",
-    ].join("\n"),
+    formula: ["q = 23", "A = [[19, 7], [3, 11]]", "s = [5, 2]", "e = [1, -1]", "b = A*s + e mod 23 = [18, 13]"].join("\n"),
     takeaway:
       "若 e 为 0，这就是普通线性代数关系；加入小噪声后，观测值只落在近似解附近，困难性由此出现。ML-KEM 把这个困难性搬到了多项式模块。",
   },
@@ -144,13 +164,7 @@ const algorithms = [
       "实现层风险集中在随机性、采样路径、分支与缓存 side-channel，以及 ctx / rnd / deterministic 语义。",
     ],
     formulaTitle: "结构口径",
-    formula: [
-      "sample y",
-      "w = A*y",
-      "c = H(w1, M, ctx)",
-      "z = y + c*s1",
-      "sig = (z, hint, c)",
-    ].join("\n"),
+    formula: ["sample y", "w = A*y", "c = H(w1, M, ctx)", "z = y + c*s1", "sig = (z, hint, c)"].join("\n"),
     takeaway:
       "ML-DSA 与 ML-KEM 使用相近的格基对象，但构造目标不同。KEM 关心共享密钥恢复，签名则关心分布控制、可验证性与 side-channel。",
   },
@@ -175,12 +189,7 @@ const algorithms = [
       "签名大，换来的是对哈希原语的保守假设与路线多样性。",
     ],
     formulaTitle: "结构口径",
-    formula: [
-      "M -> FORS leaves",
-      "FORS output -> XMSS leaf",
-      "XMSS auth path -> hypertree path",
-      "sig = FORS parts + auth paths",
-    ].join("\n"),
+    formula: ["M -> FORS leaves", "FORS output -> XMSS leaf", "XMSS auth path -> hypertree path", "sig = FORS parts + auth paths"].join("\n"),
     takeaway:
       "SLH-DSA 的问题不在“能不能做”，而在对象尺寸、链路带宽、证书链与分发系统是否承受得住。",
   },
@@ -205,51 +214,56 @@ const algorithms = [
       "路线价值主要在算法多样性与长期备份，而非立即替代 ML-KEM。",
     ],
     formulaTitle: "结构口径",
-    formula: [
-      "public key -> code-based structure",
-      "ciphertext -> noisy codeword",
-      "decapsulation -> decode + derive shared secret",
-    ].join("\n"),
+    formula: ["public key -> code-based structure", "ciphertext -> noisy codeword", "decapsulation -> decode + derive shared secret"].join("\n"),
     takeaway:
       "HQC 回答的是“如果主力格基路线之外还需要一条正式备用路线，系统要如何准备”的问题。",
   },
 ];
 
-const migrationRules = [
+const principleStages = [
   {
-    key: "long_lived_data",
-    title: "visitor-facing hybrid KEM",
-    text: "长期敏感数据对应更高的 HNDL 风险，可先规划 TLS / Zero Trust / Tunnel 的 hybrid KEM 试点。",
+    id: "point",
+    title: "1. 精确点位",
+    intro: "如果观测值完全精确，这本质上只是线性代数关系。",
+    copy: [
+      "A*s = b 时，攻击者面对的是一组可精确求解的关系。",
+      "量子威胁主要改变的是对大规模搜索和离散结构的处理能力。",
+      "因此 PQC 不会直接把“精确坐标”暴露出去。",
+    ],
   },
   {
-    key: "mobile_clients",
-    title: "弱网与移动端压测",
-    text: "移动网络对握手回归和首包字节更敏感，可单独评估 resumption、握手失败率和大证书链。",
+    id: "noise",
+    title: "2. 注入小噪声",
+    intro: "LWE 的关键动作是把精确关系变成带噪近似关系。",
+    copy: [
+      "公开值变成 b = A*s + e (mod q)，其中 e 是小噪声。",
+      "观察者看到的是一簇接近真实解、但并不精确重合的点。",
+      "困难性来自“同时满足很多带噪约束”，不再是单个方程的精确求解。",
+    ],
   },
   {
-    key: "vpn_or_ipsec",
-    title: "IKEv2 / VPN 路线",
-    text: "IKEv2 / VPN 可单独评估 PMTU、分片、设备固件和安全网关支持。",
-  },
-  {
-    key: "heavy_pki",
-    title: "签名迁移单独规划",
-    text: "证书链、CT、SCT、代码签名、固件签名可作为独立路线规划。",
-  },
-  {
-    key: "origin_sprawl",
-    title: "origin 侧依赖盘点",
-    text: "源站、反向代理、LB、WAF 和老 SDK 往往对应更长的改造周期。",
-  },
-  {
-    key: "third_party_appliances",
-    title: "供应商路线图",
-    text: "HSM、网关和安全设备常决定迁移窗口，可提前同步采购与供应商路线图。",
+    id: "recover",
+    title: "3. 私钥纠偏",
+    intro: "拥有结构化秘密的人，可以在带噪环境下稳定恢复共享秘密。",
+    copy: [
+      "对合法接收方，噪声表现为可控偏移，不会构成完全随机破坏。",
+      "KEM 的封装和解封装流程围绕这个“纠偏”过程组织。",
+      "ML-KEM 在实现层再叠加 NTT、压缩和 FO transform 等步骤。",
+    ],
   },
 ];
 
 const tabs = document.querySelectorAll(".tab");
 const panels = document.querySelectorAll(".panel");
+const scenarioList = document.getElementById("scenario-list");
+const scenarioDetail = document.getElementById("scenario-detail");
+const algorithmGrid = document.getElementById("algorithm-grid");
+const algorithmDetail = document.getElementById("algorithm-detail");
+const principleVisual = document.getElementById("principle-visual");
+const principleDetail = document.getElementById("principle-detail");
+
+let principleIndex = 0;
+let principleTimer = null;
 
 tabs.forEach((tab) => {
   tab.addEventListener("click", () => {
@@ -261,38 +275,11 @@ tabs.forEach((tab) => {
   });
 });
 
-const scenarioList = document.getElementById("scenario-list");
-const scenarioDetail = document.getElementById("scenario-detail");
-const algorithmGrid = document.getElementById("algorithm-grid");
-const algorithmDetail = document.getElementById("algorithm-detail");
-const migrationForm = document.getElementById("migration-form");
-const migrationResult = document.getElementById("migration-result");
-
 function formatMetricValue(metric, value) {
   if (value === null || value === undefined) {
     return "N/A";
   }
   return `${value} ${metric.unit}`;
-}
-
-function renderScenarioButtons(activeId) {
-  scenarioList.innerHTML = "";
-  handshakeScenarios.forEach((scenario) => {
-    const wrapper = document.createElement("div");
-    wrapper.className = `option${scenario.id === activeId ? " is-active" : ""}`;
-    wrapper.innerHTML = `
-      <button type="button" data-scenario="${scenario.id}">
-        <span class="label">${scenario.badge}</span>
-        <strong>${scenario.label}</strong>
-        <p>${scenario.summary}</p>
-      </button>
-    `;
-    scenarioList.appendChild(wrapper);
-  });
-
-  scenarioList.querySelectorAll("button").forEach((button) => {
-    button.addEventListener("click", () => renderScenario(button.dataset.scenario));
-  });
 }
 
 function renderFactGrid(facts) {
@@ -306,6 +293,30 @@ function renderFactGrid(facts) {
       `,
     )
     .join("");
+}
+
+function renderPacketBlocks(packet) {
+  const blocks = packet.blocks
+    .map((block, index) => {
+      const repeat = block.repeat ?? 1;
+      return Array.from({ length: repeat })
+        .map(
+          (_, subIndex) => `
+            <div class="packet-block tone-${block.tone}${block.flex ? " packet-flex" : ""}" style="animation-delay:${(index + subIndex) * 80}ms">
+              ${block.label}
+            </div>
+          `,
+        )
+        .join("");
+    })
+    .join("");
+
+  return `
+    <div class="packet-card">
+      <p class="subtle">${packet.lead}</p>
+      <div class="packet-strip">${blocks}</div>
+    </div>
+  `;
 }
 
 function renderComparisonRows(activeId) {
@@ -347,6 +358,26 @@ function renderComparisonRows(activeId) {
     .join("");
 }
 
+function renderScenarioButtons(activeId) {
+  scenarioList.innerHTML = "";
+  handshakeScenarios.forEach((scenario) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = `option${scenario.id === activeId ? " is-active" : ""}`;
+    wrapper.innerHTML = `
+      <button type="button" data-scenario="${scenario.id}">
+        <span class="label">${scenario.badge}</span>
+        <strong>${scenario.label}</strong>
+        <p>${scenario.summary}</p>
+      </button>
+    `;
+    scenarioList.appendChild(wrapper);
+  });
+
+  scenarioList.querySelectorAll("button").forEach((button) => {
+    button.addEventListener("click", () => renderScenario(button.dataset.scenario));
+  });
+}
+
 function renderScenario(id) {
   const scenario = handshakeScenarios.find((item) => item.id === id) ?? handshakeScenarios[0];
   renderScenarioButtons(scenario.id);
@@ -361,6 +392,10 @@ function renderScenario(id) {
     <div class="detail-section">
       <h3>对象与口径</h3>
       <div class="fact-grid">${renderFactGrid(scenario.facts)}</div>
+    </div>
+    <div class="detail-section">
+      <h3>包体可视化</h3>
+      ${renderPacketBlocks(scenario.packet)}
     </div>
     <div class="detail-section">
       <h3>跨场景对比</h3>
@@ -423,32 +458,89 @@ function renderAlgorithm(id) {
   `;
 }
 
-function renderMigrationResult() {
-  const formData = new FormData(migrationForm);
-  const activeRules = migrationRules.filter((rule) => formData.has(rule.key));
-  const resultCards = activeRules.length
-    ? activeRules
+function renderPrincipleVisual(stage) {
+  const isPoint = stage.id === "point";
+  const isNoise = stage.id === "noise";
+  const isRecover = stage.id === "recover";
+
+  principleVisual.innerHTML = `
+    <div class="principle-viewport stage-${stage.id}">
+      <div class="grid-surface"></div>
+      <div class="principle-point source-point ${isPoint ? "is-active" : ""}"></div>
+      <div class="principle-point recovered-point ${isRecover ? "is-active" : ""}"></div>
+      <div class="principle-halo ${isNoise ? "is-active" : ""}"></div>
+      <div class="noise-cloud ${isNoise ? "is-active" : ""}">
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="principle-line line-a ${isRecover ? "is-active" : ""}"></div>
+      <div class="principle-line line-b ${isRecover ? "is-active" : ""}"></div>
+    </div>
+    <div class="principle-switches">
+      ${principleStages
         .map(
-          (rule) => `
-            <article class="result-card">
-              <h3>${rule.title}</h3>
-              <p>${rule.text}</p>
-            </article>
+          (item, index) => `
+            <button type="button" class="principle-switch${index === principleIndex ? " is-active" : ""}" data-stage="${index}">
+              ${item.title}
+            </button>
           `,
         )
-        .join("")
-    : `
-      <article class="result-card">
-        <h3>从 inventory 开始</h3>
-        <p>可先盘点 TLS、VPN、PKI、HSM、代码签名和 origin 侧的公钥算法使用点。</p>
-      </article>
-    `;
+        .join("")}
+    </div>
+  `;
 
-  migrationResult.innerHTML = resultCards;
+  principleVisual.querySelectorAll(".principle-switch").forEach((button) => {
+    button.addEventListener("click", () => {
+      principleIndex = Number(button.dataset.stage);
+      renderPrinciple(principleIndex);
+      restartPrincipleLoop();
+    });
+  });
 }
 
-migrationForm.addEventListener("change", renderMigrationResult);
+function renderPrincipleDetail(stage) {
+  principleDetail.innerHTML = `
+    <div class="detail-section">
+      <span class="label">LWE / Module-LWE</span>
+      <h3>${stage.title}</h3>
+      <p>${stage.intro}</p>
+    </div>
+    <div class="detail-section">
+      <h3>看这一帧时要抓住什么</h3>
+      <ul class="detail-list">
+        ${stage.copy.map((item) => `<li>${item}</li>`).join("")}
+      </ul>
+    </div>
+    <div class="detail-section">
+      <h3>最短公式口径</h3>
+      <pre class="formula-block">b = A*s + e (mod q)
+
+A : 公开矩阵
+s : 私钥相关秘密
+e : 小噪声
+b : 公开观测值</pre>
+      <p class="subtle">精确关系变成带噪关系之后，问题转向近似恢复与结构化纠偏。</p>
+    </div>
+  `;
+}
+
+function renderPrinciple(index) {
+  const stage = principleStages[index];
+  renderPrincipleVisual(stage);
+  renderPrincipleDetail(stage);
+}
+
+function restartPrincipleLoop() {
+  if (principleTimer) {
+    clearInterval(principleTimer);
+  }
+  principleTimer = setInterval(() => {
+    principleIndex = (principleIndex + 1) % principleStages.length;
+    renderPrinciple(principleIndex);
+  }, 3600);
+}
 
 renderScenario(handshakeScenarios[1].id);
 renderAlgorithm(algorithms[0].id);
-renderMigrationResult();
+renderPrinciple(principleIndex);
+restartPrincipleLoop();

@@ -62,7 +62,7 @@
       <nav class="tabs" aria-label="PQC labs">
         <button class="tab is-active" data-tab="handshake">Handshake Lab</button>
         <button class="tab" data-tab="algorithm">Algorithm Lab</button>
-        <button class="tab" data-tab="migration">Migration Lab</button>
+        <button class="tab" data-tab="principle">Principle Intro</button>
       </nav>
 
       <main class="panels">
@@ -92,22 +92,15 @@
           </div>
         </section>
 
-        <section class="panel" id="panel-migration">
+        <section class="panel" id="panel-principle">
           <div class="panel-grid">
             <article class="card">
-              <h2>系统画像</h2>
-              <form id="migration-form" class="checklist">
-                <label><input type="checkbox" name="long_lived_data" /> 有长期敏感数据</label>
-                <label><input type="checkbox" name="mobile_clients" /> 有移动端或弱网客户端</label>
-                <label><input type="checkbox" name="vpn_or_ipsec" /> 大量使用 VPN / IPsec</label>
-                <label><input type="checkbox" name="heavy_pki" /> 强依赖证书、CT、代码签名</label>
-                <label><input type="checkbox" name="origin_sprawl" /> 源站和反向代理很多</label>
-                <label><input type="checkbox" name="third_party_appliances" /> 严重依赖第三方网关 / HSM / 安全设备</label>
-              </form>
+              <h2>格问题的直观过程</h2>
+              <div id="principle-visual"></div>
             </article>
             <article class="card">
-              <h2>迁移结果</h2>
-              <div id="migration-result"></div>
+              <h2>简单原理介绍</h2>
+              <div id="principle-detail"></div>
             </article>
           </div>
         </section>
