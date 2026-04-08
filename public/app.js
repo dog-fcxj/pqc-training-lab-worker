@@ -1,3 +1,30 @@
+const heroIndicators = [
+  {
+    percent: 52,
+    precision: 0,
+    short: "PQC",
+    tone: "cyan",
+    title: "Web 流量中的 PQ 加密占比",
+    detail: "Cloudflare 2025 年末 human-generated Web traffic",
+  },
+  {
+    percent: 39,
+    precision: 0,
+    short: "Sites",
+    tone: "violet",
+    title: "公开网站启用率",
+    detail: "支持 X25519MLKEM768 或相关 PQ 路线的网站占比",
+  },
+  {
+    percent: 3.7,
+    precision: 1,
+    short: "Origin",
+    tone: "green",
+    title: "源站侧保护率",
+    detail: "Cloudflare 与 origin 之间已具备 PQ 保护的连接占比",
+  },
+];
+
 const handshakeMetrics = [
   {
     key: "clientExtraBytes",
@@ -80,7 +107,7 @@ const handshakeScenarios = [
     notes: [
       "Cloudflare 文档将 X25519MLKEM768 作为推荐 hybrid key agreement。",
       "公开部署中最常见的定量变化是握手字节增长，证书链通常仍沿用传统路径。",
-      "KEM 路线可先处理 HNDL 风险，签名迁移仍是独立问题。",
+      "KEM 路线可先处理 HNDL 风险，签名体系的替换仍需单独评估。",
     ],
   },
   {
@@ -191,7 +218,7 @@ const algorithms = [
     formulaTitle: "结构口径",
     formula: ["M -> FORS leaves", "FORS output -> XMSS leaf", "XMSS auth path -> hypertree path", "sig = FORS parts + auth paths"].join("\n"),
     takeaway:
-      "SLH-DSA 的问题不在“能不能做”，而在对象尺寸、链路带宽、证书链与分发系统是否承受得住。",
+      "SLH-DSA 的问题不在能否落地，而在对象尺寸、链路带宽、证书链与分发系统是否承受得住。",
   },
   {
     id: "hqc",
@@ -216,41 +243,98 @@ const algorithms = [
     formulaTitle: "结构口径",
     formula: ["public key -> code-based structure", "ciphertext -> noisy codeword", "decapsulation -> decode + derive shared secret"].join("\n"),
     takeaway:
-      "HQC 回答的是“如果主力格基路线之外还需要一条正式备用路线，系统要如何准备”的问题。",
+      "HQC 回答的是如果主力格基路线之外还需要一条正式备用路线，系统要如何准备。",
   },
 ];
 
-const principleStages = [
+const principleFamilies = [
   {
-    id: "point",
-    title: "1. 精确点位",
-    intro: "如果观测值完全精确，这本质上只是线性代数关系。",
-    copy: [
-      "A*s = b 时，攻击者面对的是一组可精确求解的关系。",
-      "量子威胁主要改变的是对大规模搜索和离散结构的处理能力。",
-      "因此 PQC 不会直接把“精确坐标”暴露出去。",
+    id: "lattice",
+    label: "LWE / Module-LWE",
+    title: "格点、噪声云与解封装纠偏",
+    intro: "LWE 把精确线性关系改写成带噪关系，公开信息落在规则格点附近的一团扰动里。",
+    facts: [
+      ["公开量", "A 与 b = A*s + e (mod q)"],
+      ["困难来源", "同时满足许多带噪约束"],
+      ["实现热点", "NTT / sampling / compression / FO"],
+      ["工程意义", "对象尺寸可控，适合 KEM 主力部署"],
     ],
+    steps: [
+      "中心亮点代表一个结构化关系，规则网格代表离散格空间。",
+      "周围涨缩的粒子云对应小噪声 e，观测值因此从精确点扩成近邻区域。",
+      "合法接收方利用私钥结构完成纠偏，得到稳定的共享秘密。",
+    ],
+    formulaTitle: "最短口径",
+    formula: ["b = A*s + e (mod q)", "", "A : 公开矩阵 / 模块", "s : 私钥相关秘密", "e : 小噪声"].join("\n"),
+    takeaway: "Module-LWE 的价值在于把困难问题与高效实现组织到同一个对象上。",
   },
   {
-    id: "noise",
-    title: "2. 注入小噪声",
-    intro: "LWE 的关键动作是把精确关系变成带噪近似关系。",
-    copy: [
-      "公开值变成 b = A*s + e (mod q)，其中 e 是小噪声。",
-      "观察者看到的是一簇接近真实解、但并不精确重合的点。",
-      "困难性来自“同时满足很多带噪约束”，不再是单个方程的精确求解。",
+    id: "hash",
+    label: "Hash-based / SLH-DSA",
+    title: "哈希树认证路径",
+    intro: "哈希基签名把消息映射到叶节点，再沿认证路径逐层重建到根，验证者只需复算路径。",
+    facts: [
+      ["叶节点", "FORS / XMSS 叶或其导出值"],
+      ["公开量", "根节点与参数集"],
+      ["困难来源", "碰撞、二次原像与树路径伪造难度"],
+      ["工程意义", "原语保守，签名对象较大"],
     ],
+    steps: [
+      "消息先落到树底部的某个叶节点，签名同时给出对应片段。",
+      "认证路径提供每一层的兄弟节点哈希，验证者可逐层向上合成父节点。",
+      "到达根节点后，与公开根比较即可完成验证。",
+    ],
+    formulaTitle: "最短口径",
+    formula: ["leaf = H(message, addr)", "node_i+1 = H(node_i || sibling_i)", "verify(root') = (root' == public_root)"].join("\n"),
+    takeaway: "SLH-DSA 的核心不在复杂代数，而在大量哈希与很长的认证路径对象。",
   },
   {
-    id: "recover",
-    title: "3. 私钥纠偏",
-    intro: "拥有结构化秘密的人，可以在带噪环境下稳定恢复共享秘密。",
-    copy: [
-      "对合法接收方，噪声表现为可控偏移，不会构成完全随机破坏。",
-      "KEM 的封装和解封装流程围绕这个“纠偏”过程组织。",
-      "ML-KEM 在实现层再叠加 NTT、压缩和 FO transform 等步骤。",
+    id: "code",
+    label: "Code-based / HQC",
+    title: "带噪码字与纠错恢复",
+    intro: "码基路线把共享秘密编码成冗余码字，通过纠错能力对抗信道式噪声。",
+    facts: [
+      ["公开量", "与生成矩阵 / 校验矩阵相关的结构"],
+      ["密文直觉", "带噪码字 + 辅助对象"],
+      ["困难来源", "通用译码问题与错误向量恢复难度"],
+      ["工程意义", "对象更大，作为非格基备份路线"],
     ],
+    steps: [
+      "发送方先把比特串编码成冗余更强的码字。",
+      "传输后有码位翻转或扰动，接收侧先计算 syndrome 观察错误模式。",
+      "解码器根据纠错能力恢复原始码字，再导出共享秘密。",
+    ],
+    formulaTitle: "最短口径",
+    formula: ["c = encode(m)", "r = c + e", "s = H * r^T", "decode(r, s) -> m"].join("\n"),
+    takeaway: "码基路线的观感更像可靠通信问题：先容忍错误，再用结构恢复信息。",
   },
+];
+
+const heroNoiseParticles = [
+  { x: -74, y: -42, size: 10, delay: 0 },
+  { x: -36, y: -70, size: 8, delay: 120 },
+  { x: 18, y: -78, size: 12, delay: 220 },
+  { x: 68, y: -34, size: 9, delay: 340 },
+  { x: 84, y: 14, size: 11, delay: 420 },
+  { x: 54, y: 60, size: 8, delay: 560 },
+  { x: 4, y: 78, size: 13, delay: 660 },
+  { x: -52, y: 62, size: 9, delay: 760 },
+  { x: -86, y: 12, size: 10, delay: 880 },
+  { x: -12, y: -26, size: 7, delay: 980 },
+  { x: 28, y: 22, size: 8, delay: 1120 },
+  { x: -24, y: 30, size: 7, delay: 1240 },
+];
+
+const principleNoiseParticles = [
+  { x: -56, y: -34, size: 9, delay: 0 },
+  { x: -24, y: -60, size: 8, delay: 100 },
+  { x: 10, y: -68, size: 11, delay: 240 },
+  { x: 54, y: -24, size: 8, delay: 340 },
+  { x: 64, y: 22, size: 10, delay: 440 },
+  { x: 40, y: 56, size: 8, delay: 560 },
+  { x: -4, y: 66, size: 12, delay: 660 },
+  { x: -44, y: 50, size: 8, delay: 760 },
+  { x: -66, y: 10, size: 9, delay: 900 },
 ];
 
 const tabs = document.querySelectorAll(".tab");
@@ -261,6 +345,12 @@ const algorithmGrid = document.getElementById("algorithm-grid");
 const algorithmDetail = document.getElementById("algorithm-detail");
 const principleVisual = document.getElementById("principle-visual");
 const principleDetail = document.getElementById("principle-detail");
+const heroLatticeGrid = document.getElementById("hero-lattice-grid");
+const heroNoiseCloud = document.getElementById("hero-noise-cloud");
+const heroRings = document.getElementById("hero-rings");
+
+const RING_RADIUS = 42;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 let principleIndex = 0;
 let principleTimer = null;
@@ -280,6 +370,26 @@ function formatMetricValue(metric, value) {
     return "N/A";
   }
   return `${value} ${metric.unit}`;
+}
+
+function formatPercent(value, precision) {
+  return `${Number(value.toFixed(precision)).toString()}%`;
+}
+
+function animatePercentValue(element, target, precision) {
+  const startTime = performance.now();
+  const duration = 1400;
+
+  function frame(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const eased = 1 - (1 - progress) ** 3;
+    element.textContent = formatPercent(target * eased, precision);
+    if (progress < 1) {
+      requestAnimationFrame(frame);
+    }
+  }
+
+  requestAnimationFrame(frame);
 }
 
 function renderFactGrid(facts) {
@@ -317,6 +427,77 @@ function renderPacketBlocks(packet) {
       <div class="packet-strip">${blocks}</div>
     </div>
   `;
+}
+
+function buildHeroLattice() {
+  if (heroLatticeGrid) {
+    heroLatticeGrid.innerHTML = Array.from({ length: 49 }, (_, index) => {
+      const row = Math.floor(index / 7);
+      const col = index % 7;
+      const isAxis = row === 3 || col === 3;
+      const isCore = row === 3 && col === 3;
+      return `<span class="hero-grid-node${isAxis ? " is-axis" : ""}${isCore ? " is-core" : ""}" style="--delay:${(row + col) * 90}ms"></span>`;
+    }).join("");
+  }
+
+  if (heroNoiseCloud) {
+    heroNoiseCloud.innerHTML = heroNoiseParticles
+      .map(
+        (particle) => `
+          <span
+            class="hero-noise-dot"
+            style="--x:${particle.x}px;--y:${particle.y}px;--size:${particle.size}px;--delay:${particle.delay}ms"
+          ></span>
+        `,
+      )
+      .join("");
+  }
+}
+
+function renderHeroRings() {
+  if (!heroRings) {
+    return;
+  }
+
+  heroRings.innerHTML = heroIndicators
+    .map(
+      (item) => `
+        <article class="stat-ring-card tone-${item.tone}" data-percent="${item.percent}" data-precision="${item.precision}">
+          <div class="stat-ring-wrap">
+            <svg class="stat-ring-svg" viewBox="0 0 120 120" aria-hidden="true">
+              <circle class="stat-ring-bg" cx="60" cy="60" r="${RING_RADIUS}"></circle>
+              <circle class="stat-ring-fg" cx="60" cy="60" r="${RING_RADIUS}"></circle>
+            </svg>
+            <div class="stat-ring-center">
+              <strong class="stat-ring-value">0%</strong>
+              <span class="stat-ring-short">${item.short}</span>
+            </div>
+          </div>
+          <div class="stat-ring-copy">
+            <strong>${item.title}</strong>
+            <p>${item.detail}</p>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+
+  requestAnimationFrame(() => {
+    heroRings.querySelectorAll(".stat-ring-card").forEach((card, index) => {
+      const percent = Number(card.dataset.percent);
+      const precision = Number(card.dataset.precision);
+      const ring = card.querySelector(".stat-ring-fg");
+      const value = card.querySelector(".stat-ring-value");
+
+      ring.style.strokeDasharray = `${RING_CIRCUMFERENCE}`;
+      ring.style.strokeDashoffset = `${RING_CIRCUMFERENCE}`;
+
+      setTimeout(() => {
+        ring.style.strokeDashoffset = `${RING_CIRCUMFERENCE * (1 - percent / 100)}`;
+        animatePercentValue(value, percent, precision);
+      }, 120 + index * 140);
+    });
+  });
 }
 
 function renderComparisonRows(activeId) {
@@ -458,30 +639,149 @@ function renderAlgorithm(id) {
   `;
 }
 
-function renderPrincipleVisual(stage) {
-  const isPoint = stage.id === "point";
-  const isNoise = stage.id === "noise";
-  const isRecover = stage.id === "recover";
+function renderPrincipleNoiseDots() {
+  return principleNoiseParticles
+    .map(
+      (particle) => `
+        <span class="lattice-noise-dot" style="--x:${particle.x}px;--y:${particle.y}px;--size:${particle.size}px;--delay:${particle.delay}ms"></span>
+      `,
+    )
+    .join("");
+}
+
+function renderHashTreeVisual() {
+  return `
+    <div class="principle-viewport visual-hash">
+      <svg class="hash-tree-svg" viewBox="0 0 360 300" aria-hidden="true">
+        <line x1="180" y1="40" x2="118" y2="92" class="tree-line auth"></line>
+        <line x1="180" y1="40" x2="242" y2="92" class="tree-line"></line>
+        <line x1="118" y1="92" x2="86" y2="144" class="tree-line auth"></line>
+        <line x1="118" y1="92" x2="150" y2="144" class="tree-line"></line>
+        <line x1="242" y1="92" x2="210" y2="144" class="tree-line"></line>
+        <line x1="242" y1="92" x2="274" y2="144" class="tree-line"></line>
+        <line x1="86" y1="144" x2="62" y2="212" class="tree-line"></line>
+        <line x1="86" y1="144" x2="110" y2="212" class="tree-line auth"></line>
+        <line x1="150" y1="144" x2="134" y2="212" class="tree-line"></line>
+        <line x1="150" y1="144" x2="172" y2="212" class="tree-line"></line>
+        <line x1="210" y1="144" x2="196" y2="212" class="tree-line"></line>
+        <line x1="210" y1="144" x2="224" y2="212" class="tree-line"></line>
+        <line x1="274" y1="144" x2="258" y2="212" class="tree-line"></line>
+        <line x1="274" y1="144" x2="298" y2="212" class="tree-line"></line>
+
+        <circle cx="180" cy="40" r="16" class="tree-node root"></circle>
+        <circle cx="118" cy="92" r="14" class="tree-node auth"></circle>
+        <circle cx="242" cy="92" r="14" class="tree-node"></circle>
+        <circle cx="86" cy="144" r="13" class="tree-node auth"></circle>
+        <circle cx="150" cy="144" r="13" class="tree-node"></circle>
+        <circle cx="210" cy="144" r="13" class="tree-node"></circle>
+        <circle cx="274" cy="144" r="13" class="tree-node"></circle>
+        <circle cx="62" cy="212" r="11" class="tree-node"></circle>
+        <circle cx="110" cy="212" r="11" class="tree-node selected"></circle>
+        <circle cx="134" cy="212" r="11" class="tree-node auth"></circle>
+        <circle cx="172" cy="212" r="11" class="tree-node"></circle>
+        <circle cx="196" cy="212" r="11" class="tree-node"></circle>
+        <circle cx="224" cy="212" r="11" class="tree-node"></circle>
+        <circle cx="258" cy="212" r="11" class="tree-node"></circle>
+        <circle cx="298" cy="212" r="11" class="tree-node"></circle>
+      </svg>
+      <div class="hash-tag tag-leaf">消息叶</div>
+      <div class="hash-tag tag-auth">认证路径</div>
+      <div class="hash-tag tag-root">公开根</div>
+    </div>
+    <div class="visual-legend">
+      <span>1. 叶节点选中</span>
+      <span>2. 兄弟哈希上送</span>
+      <span>3. 与公开根比对</span>
+    </div>
+  `;
+}
+
+function renderCodeRow(label, values, variants = {}) {
+  const bits = values
+    .map((bit, index) => {
+      const variant = variants[index] ?? "";
+      return `<span class="bit${variant ? ` ${variant}` : ""}" style="animation-delay:${index * 70}ms">${bit}</span>`;
+    })
+    .join("");
+
+  return `
+    <div class="code-row">
+      <span class="code-label">${label}</span>
+      <div class="bit-strip">${bits}</div>
+    </div>
+  `;
+}
+
+function renderCodeVisual() {
+  const codeword = ["1", "0", "1", "1", "0", "0", "1", "0", "1", "1", "0", "1"];
+  const received = ["1", "0", "1", "0", "0", "0", "1", "1", "1", "1", "0", "0"];
+  const corrected = ["1", "0", "1", "1", "0", "0", "1", "0", "1", "1", "0", "1"];
+
+  return `
+    <div class="principle-viewport visual-code">
+      <div class="code-stack">
+        ${renderCodeRow("编码后", codeword, { 0: "core", 3: "core", 8: "core" })}
+        <div class="code-arrow">信道噪声 / error vector</div>
+        ${renderCodeRow("接收后", received, { 3: "flip", 7: "flip", 11: "flip" })}
+        <div class="syndrome-card">
+          <strong>syndrome</strong>
+          <span>H · r^T</span>
+          <span class="syndrome-bits">0 1 0 1 1</span>
+        </div>
+        <div class="code-arrow">纠错译码</div>
+        ${renderCodeRow("恢复后", corrected, { 3: "fixed", 7: "fixed", 11: "fixed" })}
+      </div>
+    </div>
+    <div class="visual-legend">
+      <span>1. 码字带冗余</span>
+      <span>2. 噪声造成翻转</span>
+      <span>3. 解码器恢复原值</span>
+    </div>
+  `;
+}
+
+function renderPrincipleVisual(family) {
+  let visualMarkup = "";
+
+  if (family.id === "lattice") {
+    visualMarkup = `
+      <div class="principle-viewport visual-lattice">
+        <div class="grid-surface"></div>
+        <div class="lattice-point lattice-origin"></div>
+        <div class="lattice-halo"></div>
+        <div class="lattice-noise">${renderPrincipleNoiseDots()}</div>
+        <div class="lattice-point lattice-recover"></div>
+        <div class="lattice-line line-a"></div>
+        <div class="lattice-line line-b"></div>
+        <div class="lattice-label label-origin">公开点</div>
+        <div class="lattice-label label-noise">噪声云</div>
+        <div class="lattice-label label-recover">解封装纠偏</div>
+      </div>
+      <div class="visual-legend">
+        <span>1. 规则格点</span>
+        <span>2. 小噪声扩散</span>
+        <span>3. 私钥纠偏</span>
+      </div>
+    `;
+  }
+
+  if (family.id === "hash") {
+    visualMarkup = renderHashTreeVisual();
+  }
+
+  if (family.id === "code") {
+    visualMarkup = renderCodeVisual();
+  }
 
   principleVisual.innerHTML = `
-    <div class="principle-viewport stage-${stage.id}">
-      <div class="grid-surface"></div>
-      <div class="principle-point source-point ${isPoint ? "is-active" : ""}"></div>
-      <div class="principle-point recovered-point ${isRecover ? "is-active" : ""}"></div>
-      <div class="principle-halo ${isNoise ? "is-active" : ""}"></div>
-      <div class="noise-cloud ${isNoise ? "is-active" : ""}">
-        <span></span><span></span><span></span><span></span><span></span><span></span>
-        <span></span><span></span><span></span><span></span><span></span><span></span>
-      </div>
-      <div class="principle-line line-a ${isRecover ? "is-active" : ""}"></div>
-      <div class="principle-line line-b ${isRecover ? "is-active" : ""}"></div>
-    </div>
+    ${visualMarkup}
     <div class="principle-switches">
-      ${principleStages
+      ${principleFamilies
         .map(
           (item, index) => `
             <button type="button" class="principle-switch${index === principleIndex ? " is-active" : ""}" data-stage="${index}">
-              ${item.title}
+              <span>${item.label}</span>
+              <strong>${item.title}</strong>
             </button>
           `,
         )
@@ -498,48 +798,50 @@ function renderPrincipleVisual(stage) {
   });
 }
 
-function renderPrincipleDetail(stage) {
+function renderPrincipleDetail(family) {
   principleDetail.innerHTML = `
     <div class="detail-section">
-      <span class="label">LWE / Module-LWE</span>
-      <h3>${stage.title}</h3>
-      <p>${stage.intro}</p>
+      <span class="label">${family.label}</span>
+      <h3>${family.title}</h3>
+      <p>${family.intro}</p>
     </div>
     <div class="detail-section">
-      <h3>看这一帧时要抓住什么</h3>
+      <h3>结构观察点</h3>
+      <div class="fact-grid">${renderFactGrid(family.facts)}</div>
+    </div>
+    <div class="detail-section">
+      <h3>运算路径</h3>
       <ul class="detail-list">
-        ${stage.copy.map((item) => `<li>${item}</li>`).join("")}
+        ${family.steps.map((item) => `<li>${item}</li>`).join("")}
       </ul>
     </div>
     <div class="detail-section">
-      <h3>最短公式口径</h3>
-      <pre class="formula-block">b = A*s + e (mod q)
-
-A : 公开矩阵
-s : 私钥相关秘密
-e : 小噪声
-b : 公开观测值</pre>
-      <p class="subtle">精确关系变成带噪关系之后，问题转向近似恢复与结构化纠偏。</p>
+      <h3>${family.formulaTitle}</h3>
+      <pre class="formula-block">${family.formula}</pre>
+      <p class="subtle">${family.takeaway}</p>
     </div>
   `;
 }
 
 function renderPrinciple(index) {
-  const stage = principleStages[index];
-  renderPrincipleVisual(stage);
-  renderPrincipleDetail(stage);
+  const family = principleFamilies[index];
+  renderPrincipleVisual(family);
+  renderPrincipleDetail(family);
 }
 
 function restartPrincipleLoop() {
   if (principleTimer) {
     clearInterval(principleTimer);
   }
+
   principleTimer = setInterval(() => {
-    principleIndex = (principleIndex + 1) % principleStages.length;
+    principleIndex = (principleIndex + 1) % principleFamilies.length;
     renderPrinciple(principleIndex);
-  }, 3600);
+  }, 5200);
 }
 
+buildHeroLattice();
+renderHeroRings();
 renderScenario(handshakeScenarios[1].id);
 renderAlgorithm(algorithms[0].id);
 renderPrinciple(principleIndex);
