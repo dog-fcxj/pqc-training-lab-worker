@@ -3,146 +3,96 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PQC Training Lab | 后量子密码学实验室</title>
-    <link rel="icon" href="data:," />
-    <!-- 引入现代字体 -->
+    <title>PQC Training Lab | 后量子实验室</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <!-- 装饰性环境光晕 -->
-    <div class="ambient-glow" style="top: -100px; left: -100px;"></div>
-    <div class="ambient-glow" style="bottom: -100px; right: -100px; background: radial-gradient(circle, rgba(168, 85, 247, 0.04) 0%, transparent 70%);"></div>
+    <!-- 史诗级背景层 -->
+    <div class="bg-layers">
+      <div class="bg-grid"></div>
+      <div class="bg-nebula"></div>
+      <div class="bg-scanlines"></div>
+    </div>
 
-    <div class="app-shell">
-      <nav class="view-nav" aria-label="PQC 导航">
-        <div class="nav-actions">
-          <button class="view-link is-active" data-target="section-intro">什么是 PQC</button>
-          <button class="view-link" data-target="section-principle">原理介绍</button>
-          <button class="view-link" data-target="section-algorithm">标准算法</button>
-          <button class="view-link" data-target="section-handshake">工程实现</button>
+    <!-- 侧边翻页导航 -->
+    <nav class="view-nav">
+      <div class="nav-dot is-active" data-index="0" data-label="Introduction"></div>
+      <div class="nav-dot" data-index="1" data-label="Principles"></div>
+      <div class="nav-dot" data-index="2" data-label="Algorithms"></div>
+      <div class="nav-dot" data-index="3" data-label="Handshake"></div>
+    </nav>
+
+    <!-- 详情浮层 -->
+    <div id="detail-overlay" class="detail-overlay">
+      <button class="cta-button" onclick="closeDetail()" style="margin-bottom: 40px;">Close Details</button>
+      <div id="detail-content"></div>
+    </div>
+
+    <div class="app-shell" id="app-shell">
+      <!-- Section 1: Hero -->
+      <section class="content-section is-active" id="section-0">
+        <div class="hero">
+          <div class="hero-copy">
+            <p style="color: var(--accent-cyan); letter-spacing: 4px; font-weight: 700;">LAB-PROTOCOL-PQC</p>
+            <h1 style="font-size: 80px; margin: 20px 0; line-height: 1.1;">后量子密码学<br/><span style="color: var(--accent-violet)">安全实验室</span></h1>
+            <p style="font-size: 18px; color: var(--text-muted); max-width: 500px; margin-bottom: 40px;">
+              面向量子威胁的下一代防御矩阵。我们在这里重构未来的安全基座。
+            </p>
+            <button class="cta-button" onclick="goToPage(2)">进入算法矩阵</button>
+          </div>
+          <div class="hero-visual-container">
+            <svg class="hero-network" id="hero-network" viewBox="0 0 440 360"></svg>
+            <div id="hero-noise-cloud"></div>
+          </div>
         </div>
-      </nav>
+      </section>
 
-      <main class="content-sections">
-        <section class="content-section intro-section" id="section-intro">
-          <header class="hero">
-            <div class="hero-copy">
-              <p class="eyebrow">Quantum-Resistant Future</p>
-              <h1>
-                后量子密码学：<br />
-                面向未来的<br />
-                安全基座
-              </h1>
-              <p class="lede">
-                面向量子计算威胁的下一代密码体系，覆盖标准算法、底层原理、握手代价与部署现状。
-              </p>
-              <div class="hero-cta">
-                <button class="cta-primary" data-target="section-algorithm">探索标准算法</button>
-                <button class="cta-secondary" data-target="section-principle">深入底层原理</button>
-              </div>
-            </div>
-            <div class="hero-lab reveal">
-              <div class="hero-visual">
-                <svg class="hero-network" id="hero-network" viewBox="0 0 440 360" aria-hidden="true"></svg>
-                <div class="hero-noise-cloud" id="hero-noise-cloud" aria-hidden="true"></div>
-                <div class="hero-core-glow" aria-hidden="true"></div>
-              </div>
-              <button class="hero-visual-cta" data-target="section-algorithm">进入交互实验室</button>
-            </div>
-            
-            <div class="hero-home-foot reveal">
-              <div class="page-head">
-                <p class="eyebrow">Cloudflare 2025 全球口径</p>
-                <h2>部署现状</h2>
-              </div>
-              <div class="hero-stats" id="hero-rings"></div>
-              <div class="signal-strip">
-                <span class="label">NIST</span>
-                <span class="label">ML-KEM</span>
-                <span class="label">ML-DSA</span>
-                <span class="label">SLH-DSA</span>
-                <span class="label">HQC</span>
-              </div>
-            </div>
-          </header>
-        </section>
+      <!-- Section 2: Principles -->
+      <section class="content-section" id="section-1">
+        <div class="panel-grid">
+          <div class="card">
+            <h2 style="color: var(--accent-cyan)">三类原理模型</h2>
+            <p style="color: var(--text-muted)">后量子密码学的核心数学假设。点击下方切换查看实时动效。</p>
+            <div id="principle-nav" style="display: grid; gap: 12px; margin-top: 40px;"></div>
+          </div>
+          <div class="card">
+            <div id="principle-visual-container" style="height: 400px; position: relative; border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden;"></div>
+            <div id="principle-summary" style="margin-top: 30px;"></div>
+            <div class="detail-jump" onclick="openDetail('principle')">深入研究底层数学方程 →</div>
+          </div>
+        </div>
+      </section>
 
-        <section class="content-section reveal" id="section-principle">
-          <div class="page-head">
-            <p class="eyebrow">Core Logic</p>
-            <h2>三类原理模型</h2>
+      <!-- Section 3: Algorithms -->
+      <section class="content-section" id="section-2">
+        <div class="panel-grid two-wide">
+          <div class="card">
+            <h2 style="color: var(--accent-violet)">NIST 标准矩阵</h2>
+            <div id="algorithm-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 30px;"></div>
           </div>
-          <div class="panel-grid">
-            <article class="card">
-              <h3>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                原理动图
-              </h3>
-              <div id="principle-visual"></div>
-            </article>
-            <article class="card">
-              <h3>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                结构与运算说明
-              </h3>
-              <div id="principle-detail"></div>
-            </article>
+          <div class="card">
+            <div id="algorithm-brief"></div>
+            <div class="detail-jump" onclick="openDetail('algorithm')">查看完整性能对比与对象规格 →</div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section class="content-section reveal" id="section-algorithm">
-          <div class="page-head">
-            <p class="eyebrow">NIST Standards</p>
-            <h2>标准算法与对象</h2>
+      <!-- Section 4: Handshake -->
+      <section class="content-section" id="section-3">
+        <div class="panel-grid">
+          <div class="card">
+            <h2 style="color: var(--accent-green)">工程化握手开销</h2>
+            <div id="scenario-list" style="display: grid; gap: 12px; margin-top: 30px;"></div>
           </div>
-          <div class="panel-grid two-wide">
-            <article class="card">
-              <h3>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                算法比较
-              </h3>
-              <div id="algorithm-grid" class="algorithm-grid"></div>
-            </article>
-            <article class="card">
-              <h3>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33 1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                原理、对象与运算路径
-              </h3>
-              <div id="algorithm-detail"></div>
-            </article>
+          <div class="card">
+            <div id="scenario-brief"></div>
+            <div class="detail-jump" onclick="openDetail('handshake')">查看 Wireshark 级别的包结构分析 →</div>
           </div>
-        </section>
-
-        <section class="content-section reveal" id="section-handshake">
-          <div class="page-head">
-            <p class="eyebrow">Protocol Payload</p>
-            <h2>握手与部署实现</h2>
-          </div>
-          <div class="panel-grid">
-            <article class="card">
-              <h3>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                场景选择
-              </h3>
-              <div class="scenario-list" id="scenario-list"></div>
-            </article>
-            <article class="card">
-              <h3>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                定量对比与口径
-              </h3>
-              <div id="scenario-detail"></div>
-            </article>
-          </div>
-        </section>
-      </main>
-
-      <footer class="footer">
-        <p>数据与事实基于 NIST、IETF、Cloudflare 截至 2026-04-07 的公开资料。</p>
-      </footer>
+        </div>
+      </section>
     </div>
 
     <script src="./app.js"></script>
