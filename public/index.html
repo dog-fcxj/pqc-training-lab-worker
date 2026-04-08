@@ -12,19 +12,49 @@
       <header class="hero">
         <div class="hero-copy">
           <p class="eyebrow">PQC Training Lab</p>
-          <h1>PQC 协议与工程实验台</h1>
+          <h1>PQC 协议与<br />工程实验台</h1>
           <p class="lede">
             聚焦 TLS、IKEv2、origin 侧、证书链与迁移代价的交互式资料页。
           </p>
         </div>
         <div class="hero-panel">
-          <div class="metric">
-            <span class="metric-value">52%</span>
-            <span class="metric-label">2025 年末 Cloudflare human-generated Web 流量中的 PQ 加密占比</span>
+          <div class="hero-visual">
+            <svg class="hero-network" viewBox="0 0 480 320" aria-hidden="true">
+              <defs>
+                <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#00E5FF"></stop>
+                  <stop offset="100%" stop-color="#8A2BE2"></stop>
+                </linearGradient>
+              </defs>
+              <line x1="74" y1="84" x2="214" y2="64"></line>
+              <line x1="214" y1="64" x2="348" y2="98"></line>
+              <line x1="74" y1="84" x2="138" y2="198"></line>
+              <line x1="138" y1="198" x2="248" y2="154"></line>
+              <line x1="248" y1="154" x2="348" y2="98"></line>
+              <line x1="248" y1="154" x2="384" y2="224"></line>
+              <line x1="138" y1="198" x2="306" y2="248"></line>
+              <line x1="306" y1="248" x2="384" y2="224"></line>
+              <circle cx="74" cy="84" r="7"></circle>
+              <circle cx="214" cy="64" r="9"></circle>
+              <circle cx="348" cy="98" r="8"></circle>
+              <circle cx="138" cy="198" r="10"></circle>
+              <circle cx="248" cy="154" r="14"></circle>
+              <circle cx="306" cy="248" r="7"></circle>
+              <circle cx="384" cy="224" r="10"></circle>
+            </svg>
+            <div class="hero-chip chip-cyan">Module-LWE</div>
+            <div class="hero-chip chip-green">Hybrid TLS</div>
+            <div class="hero-chip chip-violet">NTT / FO</div>
           </div>
-          <div class="metric">
-            <span class="metric-value">39% / 3.7%</span>
-            <span class="metric-label">公开网站支持率 / origin 支持率</span>
+          <div class="hero-stats">
+            <div class="metric">
+              <span class="metric-value">52%</span>
+              <span class="metric-label">2025 年末 Cloudflare human-generated Web 流量中的 PQ 加密占比</span>
+            </div>
+            <div class="metric">
+              <span class="metric-value">39% / 3.7%</span>
+              <span class="metric-label">公开网站支持率 / origin 支持率</span>
+            </div>
           </div>
         </div>
       </header>
