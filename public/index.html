@@ -3,101 +3,46 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PQC Training Lab | 后量子实验室</title>
+    <title>PQC Training Lab | 模块化重构版</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <!-- 纯净背景层 -->
+    <!-- 动态网格背景 -->
     <div class="bg-grid-overlay"></div>
     <div id="data-streams" style="position: fixed; inset: 0; z-index: 0; pointer-events: none;"></div>
 
-    <!-- 极简导航 -->
+    <!-- 极简侧边导航 -->
     <nav class="view-nav">
-      <div class="nav-dot is-active" data-index="0" data-label="Protocol"></div>
+      <div class="nav-dot is-active" data-index="0" data-label="Hero"></div>
       <div class="nav-dot" data-index="1" data-label="Principles"></div>
       <div class="nav-dot" data-index="2" data-label="Algorithms"></div>
       <div class="nav-dot" data-index="3" data-label="Deployment"></div>
     </nav>
 
-    <!-- 详情浮层 -->
-    <div id="detail-overlay" class="detail-overlay">
-      <div style="max-width: 1200px; margin: 0 auto;">
+    <!-- 详情浮层 (物理隔离，默认不可见) -->
+    <div id="detail-overlay" class="detail-overlay" style="visibility: hidden; pointer-events: none;">
+      <div style="max-width: 1200px; margin: 0 auto; position: relative;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px;">
-          <h2 id="overlay-title" style="margin:0; font-size: 42px;">Technical Spec</h2>
-          <button class="cta-button" onclick="closeDetail()">Close</button>
+          <h2 id="overlay-title" style="margin:0; font-size: 42px; background: linear-gradient(to right, #fff, var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Technical Spec</h2>
+          <button class="cta-button" onclick="window.closeDetail()">Return</button>
         </div>
-        <div id="detail-content" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;"></div>
+        <div id="detail-content" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+          <!-- 内容动态注入 -->
+        </div>
       </div>
     </div>
 
+    <!-- 主翻页轴 -->
     <div class="app-shell" id="app-shell">
-      <!-- Section 0 -->
-      <section class="content-section is-active" id="section-0">
-        <div class="card card-corners" style="display: flex; gap: 60px; align-items: center;">
-          <div style="flex: 1.2">
-            <p style="color: var(--accent-cyan); font-family: 'JetBrains Mono'; font-size: 14px; letter-spacing: 4px; font-weight: 700; margin-bottom: 16px;">// DEFENSE_MATRIX_READY</p>
-            <h1>后量子密码学<br/>安全实验室</h1>
-            <p style="color: var(--text-dim); font-size: 18px; line-height: 1.8; margin-bottom: 48px;">
-              量子计算正在重塑信息安全的边界。我们通过格密码、哈希树与纠错码，构建不可逾越的抗量子堡垒。
-            </p>
-            <div style="display: flex; gap: 20px;">
-              <button class="cta-button" onclick="goToPage(2)">Algorithm View</button>
-              <button class="cta-button" style="border-color: var(--accent-violet); color: var(--accent-violet)" onclick="goToPage(1)">Principles</button>
-            </div>
-          </div>
-          <div style="flex: 1; height: 400px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 8px;">
-            <svg id="hero-network" viewBox="0 0 440 360" style="width:100%; height:100%;"></svg>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 1 -->
-      <section class="content-section" id="section-1">
-        <div class="card card-corners" style="display: grid; grid-template-columns: 1fr 1.8fr; gap: 48px;">
-          <div>
-            <h2 style="font-size: 32px; margin-bottom: 32px;">核心数学原理</h2>
-            <div id="principle-nav" style="display: grid; gap: 16px;"></div>
-          </div>
-          <div style="display: grid; grid-template-rows: 1fr auto;">
-            <div id="principle-stage" style="border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); min-height: 320px; border-radius: 4px;"></div>
-            <div style="padding-top: 32px; display: flex; justify-content: space-between; align-items: flex-end;">
-              <div id="principle-info"></div>
-              <span class="detail-jump" onclick="openDetail('principle')">Explore Math →</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 2 -->
-      <section class="content-section" id="section-2">
-        <div class="card card-corners" style="display: grid; grid-template-rows: auto 1fr; gap: 48px;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-            <h2 style="margin:0;">NIST 标准算法矩阵</h2>
-            <span class="detail-jump" onclick="openDetail('algorithm')">Benchmark Analysis →</span>
-          </div>
-          <div id="algorithm-grid"></div>
-        </div>
-      </section>
-
-      <!-- Section 3 -->
-      <section class="content-section" id="section-3">
-        <div class="card card-corners" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px;">
-          <div>
-            <h2 style="margin-bottom: 40px;">工程化握手开销</h2>
-            <div id="scenario-list" style="display: grid; gap: 16px;"></div>
-          </div>
-          <div style="background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.2); padding: 40px; border-radius: 8px;">
-            <div id="scenario-brief"></div>
-            <span class="detail-jump" style="color: var(--accent-violet); margin-top: 32px;" onclick="openDetail('handshake')">Traffic Analysis →</span>
-          </div>
-        </div>
-      </section>
+      <section class="content-section" id="section-0"></section>
+      <section class="content-section" id="section-1"></section>
+      <section class="content-section" id="section-2"></section>
+      <section class="content-section" id="section-3"></section>
     </div>
 
-    <!-- 模块化导入 -->
     <script type="module" src="./app.js"></script>
   </body>
 </html>
