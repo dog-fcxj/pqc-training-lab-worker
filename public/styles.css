@@ -1,245 +1,168 @@
 :root {
-  /* 深度科技色彩 */
-  --bg-darker: #010409;
-  --bg-card: rgba(6, 11, 25, 0.85);
+  --bg-base: #02040a;
+  --bg-panel: rgba(8, 14, 28, 0.65);
   --accent-cyan: #00f2ff;
   --accent-violet: #8b5cf6;
-  --accent-green: #10b981;
-  --text-main: #e2e8f0;
-  --text-muted: #94a3b8;
+  --accent-magenta: #ff2975;
+  --text-main: #f1f5f9;
+  --text-muted: #64748b;
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-glow: 0 0 20px rgba(0, 242, 255, 0.15);
+  --neon-glow: 0 0 15px rgba(0, 242, 255, 0.3);
 }
 
-* { box-sizing: border-box; }
 body, html { 
-  margin: 0; 
-  padding: 0; 
-  height: 100%; 
-  overflow: hidden; /* 核心：禁止原生滚动，由 JS 控制翻页 */
-  background-color: var(--bg-darker);
+  margin: 0; padding: 0; height: 100%; overflow: hidden;
+  background-color: var(--bg-base);
   color: var(--text-main);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-/* 史诗级多层背景 */
-.bg-layers {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-}
+/* 史诗级多层背景 - 增加色彩丰富度 */
+.bg-layers { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
 
-/* 层1：动态网格 */
 .bg-grid {
-  position: absolute;
-  inset: -50%;
+  position: absolute; inset: -50%;
   background-image: 
-    linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
-  background-size: 50px 50px;
-  transform: perspective(1000px) rotateX(60deg);
-  animation: grid-move 20s linear infinite;
+    linear-gradient(rgba(0, 242, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 242, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: perspective(800px) rotateX(45deg);
+  animation: grid-scroll 25s linear infinite;
 }
 
-/* 层2：扫描线 */
-.bg-scanlines {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3) 50%);
-  background-size: 100% 4px;
-  pointer-events: none;
-  opacity: 0.1;
-}
-
-/* 层3：星云光晕 */
 .bg-nebula {
-  position: absolute;
-  width: 150vw;
-  height: 150vh;
-  top: -25%; left: -25%;
+  position: absolute; inset: -20%;
   background: 
-    radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.1) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(16, 185, 129, 0.1) 0%, transparent 40%);
-  filter: blur(80px);
-  animation: nebula-drift 30s ease-in-out infinite alternate;
+    radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.15), transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255, 41, 117, 0.1), transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(0, 242, 255, 0.05), transparent 50%);
+  filter: blur(100px);
+  animation: nebula-pulse 20s ease-in-out infinite alternate;
 }
 
-/* 导航系统 */
+/* 侧边导航 - 极简化处理，不挡标题 */
 .view-nav {
-  position: fixed;
-  left: 40px;
-  top: 50%;
+  position: fixed; left: 32px; top: 50%;
   transform: translateY(-50%);
   z-index: 100;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  display: flex; flex-direction: column; gap: 40px;
+  padding-right: 20px;
 }
 
 .nav-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 4px; height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer; transition: 0.4s;
   position: relative;
 }
 
 .nav-dot::after {
   content: attr(data-label);
-  position: absolute;
-  left: 30px;
-  top: 50%;
+  position: absolute; left: 16px; top: 50%;
   transform: translateY(-50%);
-  opacity: 0;
-  white-space: nowrap;
-  font-size: 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--accent-cyan);
-  transition: 0.3s;
+  opacity: 0; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--accent-cyan); transition: 0.3s;
+  pointer-events: none;
 }
 
 .nav-dot:hover::after, .nav-dot.is-active::after {
-  opacity: 1;
-  transform: translateY(-50%) translateX(10px);
+  opacity: 1; transform: translateY(-50%) translateX(10px);
 }
 
 .nav-dot.is-active {
   background: var(--accent-cyan);
-  box-shadow: 0 0 15px var(--accent-cyan);
-  transform: scale(1.5);
+  box-shadow: var(--neon-glow);
+  height: 40px;
 }
 
-/* 全屏页面容器 */
+/* 翻页容器 */
 .app-shell {
-  height: 100%;
-  transition: transform 1s cubic-bezier(0.645, 0.045, 0.355, 1);
+  height: 100%; transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
 }
 
 .content-section {
-  height: 100vh;
-  width: 100%;
-  padding: 80px 120px;
-  display: grid;
-  place-items: center;
-  position: relative;
-  opacity: 0.3;
-  filter: blur(10px);
-  transition: all 1s ease;
+  height: 100vh; width: 100%;
+  padding: 60px 100px 60px 140px; /* 增加左侧内边距避开导航 */
+  display: grid; place-items: center;
+  position: relative; opacity: 0; filter: blur(20px) scale(0.95);
+  transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .content-section.is-active {
-  opacity: 1;
-  filter: blur(0);
+  opacity: 1; filter: blur(0) scale(1);
 }
 
-/* Hero 布局增强 */
-.hero {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 100px;
-  max-width: 1400px;
-  width: 100%;
-}
-
-.hero-visual-container {
-  position: relative;
-  height: 600px;
-  background: rgba(0,0,0,0.4);
-  border: 1px solid var(--glass-border);
-  border-radius: 40px;
-  overflow: hidden;
-  box-shadow: var(--glass-glow);
-}
-
-.hero-network { width: 100%; height: 100%; }
-
-/* 内容卡片 */
-.panel-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr;
-  gap: 40px;
-  width: 100%;
-  max-width: 1400px;
-}
-
+/* 科技感卡片 - 增加双重边框和角标 */
 .card {
-  background: var(--bg-card);
+  background: var(--bg-panel);
   border: 1px solid var(--glass-border);
-  border-radius: 32px;
+  border-radius: 4px; /* 趋向工业化的微圆角 */
   padding: 40px;
-  backdrop-filter: blur(30px);
+  backdrop-filter: blur(20px);
   position: relative;
-  overflow: hidden;
+  box-shadow: inset 0 0 20px rgba(0, 242, 255, 0.05);
 }
 
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+/* 角落装饰件 */
+.card::before, .card::after {
+  content: ""; position: absolute; width: 15px; height: 15px; border: 2px solid var(--accent-cyan);
+}
+.card::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.card::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+/* 标题样式 */
+h1, h2 { 
+  margin: 0; letter-spacing: -0.02em; 
+  background: linear-gradient(to bottom, #fff, #94a3b8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
 
-/* 详情跳转浮层 (Drill-down) */
+/* 详情滑层 - 增加视觉丰富度 */
 .detail-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(1, 4, 9, 0.95);
-  z-index: 200;
-  padding: 60px;
-  transform: translateX(100%);
-  transition: 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+  position: fixed; inset: 0; z-index: 200;
+  background: radial-gradient(circle at center, rgba(8, 14, 28, 0.98), #02040a);
+  padding: 80px; transform: translateY(100%);
+  transition: 0.6s cubic-bezier(0.85, 0, 0.15, 1);
   overflow-y: auto;
 }
+.detail-overlay.is-open { transform: translateY(0); }
 
-.detail-overlay.is-open {
-  transform: translateX(0);
+/* 详情卡片 */
+.detail-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px;
 }
 
-/* 动画库 */
-@keyframes grid-move {
-  from { background-position: 0 0; }
-  to { background-position: 50px 50px; }
-}
-
-@keyframes nebula-drift {
-  from { transform: rotate(0deg) scale(1); }
-  to { transform: rotate(5deg) scale(1.1); }
-}
-
-/* 标签与按钮 */
+/* 按钮与交互 */
 .cta-button {
-  padding: 16px 40px;
-  border-radius: 999px;
-  border: 1px solid var(--accent-cyan);
-  background: transparent;
-  color: var(--accent-cyan);
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.3s;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  padding: 12px 32px; border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.03); color: var(--text-main);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; cursor: pointer; transition: 0.3s;
 }
-
 .cta-button:hover {
-  background: var(--accent-cyan);
-  color: var(--bg-darker);
-  box-shadow: 0 0 30px var(--accent-cyan);
+  background: var(--accent-cyan); color: #000; border-color: var(--accent-cyan);
+  box-shadow: var(--neon-glow);
 }
 
-/* 详情触发器 */
 .detail-jump {
-  margin-top: 24px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: var(--accent-cyan);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 11px; font-weight: 800; color: var(--accent-cyan);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  cursor: pointer; margin-top: 20px; display: inline-block;
 }
 
-.detail-jump:hover { text-decoration: underline; }
+/* 动画定义 */
+@keyframes grid-scroll {
+  from { background-position: 0 0; }
+  to { background-position: 0 60px; }
+}
+@keyframes nebula-pulse {
+  from { opacity: 0.6; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.1); }
+}
+
+/* 数据流动画 */
+.data-stream {
+  position: absolute; color: var(--accent-cyan); font-family: 'JetBrains Mono';
+  font-size: 10px; opacity: 0.1; pointer-events: none;
+}

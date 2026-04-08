@@ -14,82 +14,98 @@
     <div class="bg-layers">
       <div class="bg-grid"></div>
       <div class="bg-nebula"></div>
-      <div class="bg-scanlines"></div>
+      <div id="data-streams"></div>
     </div>
 
-    <!-- 侧边翻页导航 -->
+    <!-- 侧边导航 (精简版) -->
     <nav class="view-nav">
-      <div class="nav-dot is-active" data-index="0" data-label="Introduction"></div>
+      <div class="nav-dot is-active" data-index="0" data-label="Protocol"></div>
       <div class="nav-dot" data-index="1" data-label="Principles"></div>
       <div class="nav-dot" data-index="2" data-label="Algorithms"></div>
-      <div class="nav-dot" data-index="3" data-label="Handshake"></div>
+      <div class="nav-dot" data-index="3" data-label="Deployment"></div>
     </nav>
 
     <!-- 详情浮层 -->
     <div id="detail-overlay" class="detail-overlay">
-      <button class="cta-button" onclick="closeDetail()" style="margin-bottom: 40px;">Close Details</button>
-      <div id="detail-content"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px;">
+        <h2 id="overlay-title" style="margin:0">System Analysis</h2>
+        <button class="cta-button" onclick="closeDetail()">Exit Terminal</button>
+      </div>
+      <div id="detail-content" class="detail-grid"></div>
     </div>
 
     <div class="app-shell" id="app-shell">
-      <!-- Section 1: Hero -->
+      <!-- Section 0: Hero -->
       <section class="content-section is-active" id="section-0">
-        <div class="hero">
-          <div class="hero-copy">
-            <p style="color: var(--accent-cyan); letter-spacing: 4px; font-weight: 700;">LAB-PROTOCOL-PQC</p>
-            <h1 style="font-size: 80px; margin: 20px 0; line-height: 1.1;">后量子密码学<br/><span style="color: var(--accent-violet)">安全实验室</span></h1>
-            <p style="font-size: 18px; color: var(--text-muted); max-width: 500px; margin-bottom: 40px;">
-              面向量子威胁的下一代防御矩阵。我们在这里重构未来的安全基座。
+        <div style="display: flex; gap: 80px; align-items: center; max-width: 1400px; width:100%">
+          <div style="flex: 1">
+            <p style="color: var(--accent-magenta); font-family: 'JetBrains Mono'; font-size: 12px; letter-spacing: 4px; margin-bottom: 12px;">SYSTEM.CORE.INIT [OK]</p>
+            <h1 style="font-size: 72px; margin-bottom: 24px;">后量子密码学<br/><span style="color: var(--accent-cyan)">安全防御矩阵</span></h1>
+            <p style="color: var(--text-muted); font-size: 18px; line-height: 1.8; margin-bottom: 40px; max-width: 520px;">
+              量子计算正在重塑信息安全的边界。我们通过格密码、哈希树与纠错码，构建不可逾越的抗量子堡垒。
             </p>
-            <button class="cta-button" onclick="goToPage(2)">进入算法矩阵</button>
+            <div style="display: flex; gap: 16px;">
+              <button class="cta-button" onclick="goToPage(2)">Algorithm Matrix</button>
+              <button class="cta-button" style="border-color: var(--accent-magenta); color: var(--accent-magenta)" onclick="goToPage(1)">Core Principles</button>
+            </div>
           </div>
-          <div class="hero-visual-container">
-            <svg class="hero-network" id="hero-network" viewBox="0 0 440 360"></svg>
-            <div id="hero-noise-cloud"></div>
+          <div style="flex: 1.2; height: 500px; position: relative;">
+            <!-- 复杂的网络图容器 -->
+            <div style="position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(0, 242, 255, 0.05), transparent 70%); border: 1px solid var(--glass-border); border-radius: 8px;">
+              <svg id="hero-network" viewBox="0 0 440 360" style="width:100%; height:100%;"></svg>
+              <div id="hero-noise-cloud"></div>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- Section 2: Principles -->
+      <!-- Section 1: Principles -->
       <section class="content-section" id="section-1">
-        <div class="panel-grid">
+        <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 32px; width: 100%; max-width: 1400px;">
           <div class="card">
-            <h2 style="color: var(--accent-cyan)">三类原理模型</h2>
-            <p style="color: var(--text-muted)">后量子密码学的核心数学假设。点击下方切换查看实时动效。</p>
-            <div id="principle-nav" style="display: grid; gap: 12px; margin-top: 40px;"></div>
+            <p style="color: var(--accent-cyan); font-size: 11px; font-weight: 800; letter-spacing: 2px; margin-bottom: 16px;">LOGIC MODELS</p>
+            <h2 style="font-size: 32px; margin-bottom: 24px;">核心数学原理</h2>
+            <div id="principle-nav" style="display: grid; gap: 12px;"></div>
           </div>
-          <div class="card">
-            <div id="principle-visual-container" style="height: 400px; position: relative; border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden;"></div>
-            <div id="principle-summary" style="margin-top: 30px;"></div>
-            <div class="detail-jump" onclick="openDetail('principle')">深入研究底层数学方程 →</div>
+          <div class="card" style="display: grid; grid-template-rows: 1fr auto;">
+            <div id="principle-stage" style="border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); position: relative; overflow: hidden;">
+              <!-- 动态演示区 -->
+            </div>
+            <div style="padding-top: 24px; display: flex; justify-content: space-between; align-items: flex-end;">
+              <div id="principle-info"></div>
+              <span class="detail-jump" onclick="openDetail('principle')">Math Formula →</span>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- Section 3: Algorithms -->
+      <!-- Section 2: Algorithms -->
       <section class="content-section" id="section-2">
-        <div class="panel-grid two-wide">
-          <div class="card">
-            <h2 style="color: var(--accent-violet)">NIST 标准矩阵</h2>
-            <div id="algorithm-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 30px;"></div>
+        <div style="display: grid; grid-template-rows: auto 1fr; gap: 32px; width: 100%; max-width: 1400px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <h2 style="font-size: 40px;">NIST 标准算法矩阵</h2>
+            <span class="detail-jump" onclick="openDetail('algorithm')">Benchmark Analysis →</span>
           </div>
-          <div class="card">
-            <div id="algorithm-brief"></div>
-            <div class="detail-jump" onclick="openDetail('algorithm')">查看完整性能对比与对象规格 →</div>
-          </div>
+          <div id="algorithm-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;"></div>
         </div>
       </section>
 
-      <!-- Section 4: Handshake -->
+      <!-- Section 3: Deployment -->
       <section class="content-section" id="section-3">
-        <div class="panel-grid">
+        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px; width: 100%; max-width: 1400px;">
           <div class="card">
-            <h2 style="color: var(--accent-green)">工程化握手开销</h2>
-            <div id="scenario-list" style="display: grid; gap: 12px; margin-top: 30px;"></div>
+            <h2 style="margin-bottom: 30px;">工程化握手开销对比</h2>
+            <div id="scenario-list" style="display: grid; gap: 16px;"></div>
           </div>
-          <div class="card">
+          <div class="card" style="background: rgba(255, 41, 117, 0.02); border-color: rgba(255, 41, 117, 0.1);">
             <div id="scenario-brief"></div>
-            <div class="detail-jump" onclick="openDetail('handshake')">查看 Wireshark 级别的包结构分析 →</div>
+            <div style="margin-top: 40px;">
+              <p style="color: var(--accent-magenta); font-size: 11px; font-weight: 800; margin-bottom: 12px;">SECURITY ADVISORY</p>
+              <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+                混合模式 (Hybrid Mode) 是目前最稳健的迁移方案，结合了传统算法的可靠性与后量子算法的抗性。
+              </p>
+            </div>
+            <span class="detail-jump" style="color: var(--accent-magenta);" onclick="openDetail('handshake')">Traffic Capture →</span>
           </div>
         </div>
       </section>
