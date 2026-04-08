@@ -13,13 +13,14 @@
     <!-- 史诗背景层 -->
     <div class="bg-layers">
       <div class="bg-grid"></div>
-      <!-- 动态氛围光球 -->
-      <div class="bg-nebula-orb" style="width: 50vw; height: 50vw; top: -10vw; left: -10vw; background: rgba(0, 242, 255, 0.05);"></div>
-      <div class="bg-nebula-orb" style="width: 40vw; height: 40vw; bottom: -10vw; right: -10vw; background: rgba(168, 85, 247, 0.08); animation-delay: -5s;"></div>
+      <!-- 显眼的高对比度星云光球 -->
+      <div class="bg-nebula-orb" style="width: 60vw; height: 60vw; top: -15vw; left: -10vw; background: radial-gradient(circle, rgba(34, 211, 238, 0.3) 0%, transparent 70%);"></div>
+      <div class="bg-nebula-orb" style="width: 50vw; height: 50vw; bottom: -10vw; right: -5vw; background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%); animation-delay: -4s;"></div>
+      <div class="bg-nebula-orb" style="width: 40vw; height: 40vw; top: 20vh; right: 10vw; background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%); animation-delay: -8s;"></div>
       <div id="data-streams"></div>
     </div>
 
-    <!-- 侧边导航 (极简隐藏版) -->
+    <!-- 侧边导航 (极简隐藏文字版) -->
     <nav class="view-nav">
       <div class="nav-dot is-active" data-index="0" data-label="Protocol"></div>
       <div class="nav-dot" data-index="1" data-label="Principles"></div>
@@ -29,46 +30,44 @@
 
     <!-- 详情浮层 -->
     <div id="detail-overlay" class="detail-overlay">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; max-width: 1400px; margin-inline: auto;">
-        <h2 id="overlay-title" style="margin:0; font-size: 42px;">System Insight</h2>
-        <button class="cta-button" onclick="closeDetail()">Return to Mainframe</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; max-width: 1200px; margin-inline: auto;">
+        <h2 id="overlay-title" style="margin:0; font-size: 48px; background: linear-gradient(to right, #fff, var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Technical Spec</h2>
+        <button class="cta-button" onclick="closeDetail()">Return</button>
       </div>
-      <div id="detail-content" style="max-width: 1400px; margin-inline: auto;"></div>
+      <div id="detail-content" style="max-width: 1200px; margin-inline: auto;"></div>
     </div>
 
     <div class="app-shell" id="app-shell">
       <!-- Section 0: Hero -->
       <section class="content-section is-active" id="section-0">
-        <div style="display: flex; gap: 80px; align-items: center; max-width: 1400px; width:100%">
+        <div class="card card-corners" style="display: flex; gap: 60px; align-items: center;">
           <div style="flex: 1">
-            <p style="color: var(--accent-magenta); font-family: 'JetBrains Mono'; font-size: 13px; letter-spacing: 4px; font-weight: 700; margin-bottom: 16px;">SECURE_PROTOCOL_INIT</p>
-            <h1>后量子密码学<br/><span style="color: var(--accent-cyan)">安全防御矩阵</span></h1>
-            <p style="color: var(--text-dim); font-size: 20px; line-height: 1.8; margin-bottom: 48px; max-width: 580px;">
+            <p style="color: var(--accent-cyan); font-family: 'JetBrains Mono'; font-size: 14px; letter-spacing: 4px; font-weight: 700; margin-bottom: 16px;">// SECURITY_DEFENSE_MATRIX</p>
+            <h1>后量子密码学<br/>安全实验室</h1>
+            <p style="color: var(--text-dim); font-size: 20px; line-height: 1.8; margin-bottom: 48px;">
               量子计算正在重塑信息安全的边界。我们通过格密码、哈希树与纠错码，构建不可逾越的抗量子堡垒。
             </p>
             <div style="display: flex; gap: 20px;">
-              <button class="cta-button" onclick="goToPage(2)">Algorithm View</button>
+              <button class="cta-button" onclick="goToPage(2)">Algorithm matrix</button>
               <button class="cta-button" style="border-color: var(--accent-violet); color: var(--accent-violet)" onclick="goToPage(1)">Core Principles</button>
             </div>
           </div>
-          <div style="flex: 1.2; height: 550px; position: relative;">
-            <div style="position: absolute; inset: 0; border: 1px solid var(--border-glass); border-radius: 8px; background: rgba(255,255,255,0.02); backdrop-filter: blur(20px);">
-              <svg id="hero-network" viewBox="0 0 440 360" style="width:100%; height:100%;"></svg>
-              <div id="hero-noise-cloud"></div>
-            </div>
+          <div style="flex: 1; height: 440px; position: relative; background: rgba(0,0,0,0.4); border: 1px solid var(--border-glass); border-radius: 8px;">
+            <svg id="hero-network" viewBox="0 0 440 360" style="width:100%; height:100%;"></svg>
+            <div id="hero-noise-cloud"></div>
           </div>
         </div>
       </section>
 
       <!-- Section 1: Principles -->
       <section class="content-section" id="section-1">
-        <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 40px; width: 100%; max-width: 1400px;">
-          <div class="card card-corners">
-            <h2>核心数学原理</h2>
-            <div id="principle-nav" style="display: grid; gap: 16px; margin-top: 32px;"></div>
+        <div class="card card-corners" style="display: grid; grid-template-columns: 1fr 1.8fr; gap: 48px;">
+          <div>
+            <h2 style="font-size: 32px; margin-bottom: 32px;">核心数学原理</h2>
+            <div id="principle-nav" style="display: grid; gap: 16px;"></div>
           </div>
-          <div class="card card-corners" style="display: grid; grid-template-rows: 1fr auto; min-height: 500px;">
-            <div id="principle-stage" style="border: 1px solid var(--border-glass); background: rgba(0,0,0,0.3); position: relative; overflow: hidden; border-radius: 4px;"></div>
+          <div style="display: grid; grid-template-rows: 1fr auto;">
+            <div id="principle-stage" style="border: 1px solid var(--border-glass); background: rgba(0,0,0,0.4); position: relative; overflow: hidden; min-height: 360px;"></div>
             <div style="padding-top: 32px; display: flex; justify-content: space-between; align-items: flex-end;">
               <div id="principle-info"></div>
               <span class="detail-jump" onclick="openDetail('principle')">Explore Logic →</span>
@@ -79,7 +78,7 @@
 
       <!-- Section 2: Algorithms -->
       <section class="content-section" id="section-2">
-        <div style="display: grid; grid-template-rows: auto 1fr; gap: 40px; width: 100%; max-width: 1400px; height: 70vh;">
+        <div class="card card-corners" style="display: grid; grid-template-rows: auto 1fr; gap: 48px; min-height: 600px;">
           <div style="display: flex; justify-content: space-between; align-items: flex-end;">
             <h2 style="margin:0;">NIST 标准算法矩阵</h2>
             <span class="detail-jump" onclick="openDetail('algorithm')">Benchmark Analysis →</span>
@@ -90,26 +89,25 @@
 
       <!-- Section 3: Deployment -->
       <section class="content-section" id="section-3">
-        <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 40px; width: 100%; max-width: 1400px;">
-          <div class="card card-corners">
-            <h2 style="margin-bottom: 40px;">工程化握手开销对比</h2>
+        <div class="card card-corners" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 48px;">
+          <div>
+            <h2 style="margin-bottom: 40px;">工程化握手开销</h2>
             <div id="scenario-list" style="display: grid; gap: 16px;"></div>
           </div>
-          <div class="card card-corners" style="background: rgba(168, 85, 247, 0.05); border-color: rgba(168, 85, 247, 0.2);">
+          <div style="background: rgba(168, 85, 247, 0.05); border: 1px solid rgba(168, 85, 247, 0.2); padding: 40px; border-radius: 8px;">
             <div id="scenario-brief"></div>
-            <div style="margin-top: 48px; border-top: 1px solid var(--border-glass); padding-top: 24px;">
+            <div style="margin-top: 48px; border-top: 1px solid var(--border-glass); padding-top: 32px;">
               <p style="color: var(--accent-violet); font-size: 13px; font-weight: 800; letter-spacing: 2px; margin-bottom: 12px;">SECURITY ADVISORY</p>
               <p style="font-size: 15px; color: var(--text-dim); line-height: 1.8;">
                 Hybrid 模式允许在不破坏现有合规性的前提下，叠加抗量子保护，是目前全球范围内最稳健的迁移路径。
               </p>
             </div>
-            <span class="detail-jump" style="color: var(--accent-violet);" onclick="openDetail('handshake')">Traffic Capture →</span>
+            <span class="detail-jump" style="color: var(--accent-violet); margin-top: 32px;" onclick="openDetail('handshake')">Traffic Capture →</span>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- 模块化脚本导入 -->
     <script type="module" src="./app.js"></script>
   </body>
 </html>
