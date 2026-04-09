@@ -6,15 +6,9 @@ import { renderAlgorithms } from './components/algorithms.js';
 import { renderHandshake } from './components/handshake.js';
 
 let currentPage = 0;
-let isScrolling = false;
-let touchStartY = null;
 
 const pageModules = [renderHero, renderPrinciples, renderAlgorithms, renderHandshake];
 const pageHashes = ["hero", "principles", "algorithms", "deployment"];
-
-function isMobileViewport() {
-  return window.matchMedia("(max-width: 900px)").matches;
-}
 
 function setBodyViewportVar() {
   document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
@@ -36,17 +30,13 @@ function ensureAllPagesRendered() {
 function goToPage(idx) {
   if (idx < 0 || idx >= pageModules.length) return;
   currentPage = idx;
-  
-  // 1. 物理翻页
-  const shell = document.getElementById("app-shell");
-  if (shell && !isMobileViewport()) {
-    shell.style.transform = `translateY(-${currentPage * 100}%)`;
-  }
-  
-  // 2. 动态渲染组件内容
-  renderPageIfNeeded(idx);
 
-  // 3. 更新导航状态
+  renderPageIfNeeded(idx);
+  const section = document.getElementById(`section-${idx}`);
+  if (section) {
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   document.querySelectorAll(".nav-dot").forEach((dot, i) => {
     dot.classList.toggle("is-active", i === currentPage);
   });
@@ -59,17 +49,6 @@ function goToPage(idx) {
     history.replaceState(null, "", `#${hash}`);
   }
 }
-
-// 滚轮监听
-window.addEventListener("wheel", (e) => {
-  if (isMobileViewport()) return;
-  if (isScrolling) return;
-  if (Math.abs(e.deltaY) < 40) return;
-  isScrolling = true;
-  if (e.deltaY > 0) goToPage(currentPage + 1);
-  else goToPage(currentPage - 1);
-  setTimeout(() => isScrolling = false, 1000);
-}, { passive: true });
 
 window.addEventListener("keydown", (event) => {
   if (document.getElementById("detail-overlay")?.classList.contains("is-open")) {
@@ -97,24 +76,6 @@ window.addEventListener("keydown", (event) => {
     goToPage(pageModules.length - 1);
   }
 });
-
-window.addEventListener("touchstart", (event) => {
-  if (!isMobileViewport()) return;
-  if (event.touches.length !== 1) return;
-  touchStartY = event.touches[0].clientY;
-}, { passive: true });
-
-window.addEventListener("touchend", (event) => {
-  if (!isMobileViewport()) return;
-  if (touchStartY === null) return;
-  const touchEndY = event.changedTouches[0]?.clientY;
-  if (typeof touchEndY !== "number") return;
-  const deltaY = touchStartY - touchEndY;
-  touchStartY = null;
-  if (Math.abs(deltaY) < 70) return;
-  if (deltaY > 0) goToPage(currentPage + 1);
-  else goToPage(currentPage - 1);
-}, { passive: true });
 
 function renderDetailBlock(block) {
   if (block.kind === 'summary') {
@@ -209,22 +170,49 @@ document.addEventListener("DOMContentLoaded", () => {
   const initialHash = window.location.hash.replace("#", "");
   const initialPage = Math.max(pageHashes.indexOf(initialHash), 0);
   ensureAllPagesRendered();
-  goToPage(initialPage);
+  currentPage = initialPage;
+  document.querySelectorAll(".nav-dot").forEach((dot, i) => {
+    dot.classList.toggle("is-active", i === currentPage);
+  });
+  document.querySelectorAll(".content-section").forEach((sec, i) => {
+    sec.classList.toggle("is-active", i === currentPage);
+  });
+  requestAnimationFrame(() => {
+    const initialSection = document.getElementById(`section-${initialPage}`);
+    if (initialSection) {
+      initialSection.scrollIntoView({ behavior: "auto", block: "start" });
+    }
+  });
   
   document.querySelectorAll(".nav-dot").forEach(dot => {
     dot.addEventListener("click", () => goToPage(parseInt(dot.dataset.index)));
   });
+
+  const sections = Array.from(document.querySelectorAll(".content-section"));
+  const observer = new IntersectionObserver((entries) => {
+    const visibleEntry = entries
+      .filter((entry) => entry.isIntersecting)
+      .sort((left, right) => right.intersectionRatio - left.intersectionRatio)[0];
+    if (!visibleEntry) return;
+    const idx = sections.indexOf(visibleEntry.target);
+    if (idx < 0 || idx === currentPage) return;
+    currentPage = idx;
+    document.querySelectorAll(".nav-dot").forEach((dot, i) => {
+      dot.classList.toggle("is-active", i === currentPage);
+    });
+    const hash = pageHashes[idx];
+    if (hash && window.location.hash !== `#${hash}`) {
+      history.replaceState(null, "", `#${hash}`);
+    }
+  }, {
+    threshold: [0.35, 0.6],
+  });
+
+  sections.forEach((section) => observer.observe(section));
 });
 
 window.addEventListener("resize", () => {
   setBodyViewportVar();
-  const shell = document.getElementById("app-shell");
-  if (!shell) return;
-  if (isMobileViewport()) {
-    shell.style.transform = "";
-  } else {
-    shell.style.transform = `translateY(-${currentPage * 100}%)`;
-  }
 });
 
 window.addEventListener("hashchange", () => {

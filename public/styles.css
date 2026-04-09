@@ -9,7 +9,7 @@
 }
 
 html, body {
-  margin: 0; padding: 0; min-height: var(--app-height); overflow: hidden;
+  margin: 0; padding: 0; min-height: var(--app-height); overflow: auto;
   background: 
     radial-gradient(circle at 15% 15%, rgba(34, 211, 238, 0.25) 0%, transparent 45%),
     radial-gradient(circle at 85% 85%, rgba(244, 63, 94, 0.2) 0%, transparent 45%),
@@ -46,14 +46,14 @@ html, body {
 .nav-dot.is-active { background: var(--accent-cyan); transform: scale(1.5); box-shadow: 0 0 15px var(--accent-cyan); }
 
 /* 主容器 */
-.app-shell { height: 100%; transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1); }
+.app-shell { height: auto; }
 
 .content-section {
-  height: var(--app-height); width: 100%; display: flex; align-items: center; justify-content: center;
+  min-height: var(--app-height); width: 100%; display: flex; align-items: center; justify-content: center;
   padding: 0 100px 0 140px; box-sizing: border-box;
-  opacity: 0; filter: blur(20px); transition: all 1s ease;
+  opacity: 1; filter: none;
 }
-.content-section.is-active { opacity: 1; filter: blur(0); }
+.content-section.is-active { opacity: 1; filter: none; }
 
 /* 卡片 */
 .card {
@@ -787,32 +787,14 @@ h1 { font-size: clamp(48px, 6vw, 80px); line-height: 1.1; margin: 0; font-weight
 }
 
 @media (max-width: 900px) {
-  html, body {
-    overflow: auto;
-  }
-
   .view-nav {
     left: 18px;
     width: 14px;
     gap: 22px;
   }
 
-  .app-shell {
-    height: auto;
-    transform: none !important;
-  }
-
   .content-section {
-    min-height: auto;
-    height: auto;
     padding: 84px 20px 56px 56px;
-    opacity: 1;
-    filter: none;
-  }
-
-  .content-section:not(.is-active) {
-    opacity: 1;
-    filter: none;
   }
 
   .card {
