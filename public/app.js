@@ -1,4 +1,4 @@
-import { algorithms } from './data.js';
+import { detailViews } from './data.js';
 import { buildHeroNetwork, initDataStreams } from './visuals.js';
 import { renderHero } from './components/hero.js';
 import { renderPrinciples } from './components/principles.js';
@@ -7,6 +7,11 @@ import { renderHandshake } from './components/handshake.js';
 
 let currentPage = 0;
 let isScrolling = false;
+const currentSelections = {
+  principle: "lattice",
+  algorithm: null,
+  handshake: "tls-hybrid"
+};
 
 const pageModules = [renderHero, renderPrinciples, renderAlgorithms, renderHandshake];
 
@@ -49,31 +54,50 @@ window.addEventListener("wheel", (e) => {
 function openDetail(type) {
   const overlay = document.getElementById("detail-overlay");
   const content = document.getElementById("detail-content");
+  const title = document.getElementById("overlay-title");
+  const view = detailViews[type];
+  if (!view) return;
+
+  const selectedId = currentSelections[type] || null;
+  const sections = view.getSections(selectedId);
+
+  title.textContent = view.title;
   overlay.classList.add("is-open");
-  
-  if (type === 'algorithm') {
-    content.innerHTML = algorithms.map(a => `
-      <div class="card card-corners">
-        <h3 style="color:var(--accent-cyan); margin:0 0 12px 0;">${a.name}</h3>
-        <p style="font-size:13px; color:var(--text-dim); line-height:1.6;">${a.detail}</p>
-        <div style="margin-top:20px; font-family:'JetBrains Mono'; font-size:11px; color:var(--accent-magenta)">
-          SPEC: ${a.specs.pk} / ${a.specs.ct || a.specs.sig} | PERF: ${a.specs.perf}
+
+  content.innerHTML = `
+    <div class="detail-lead card card-corners">
+      <p class="detail-eyebrow">${view.eyebrow}</p>
+      <p class="detail-intro">${view.intro}</p>
+    </div>
+    ${sections.map((section) => `
+      <div class="detail-section">
+        <div class="detail-section-title">${section.title}</div>
+        <div class="detail-card-grid">
+          ${section.cards.map((card) => `
+            <article class="card card-corners detail-card">
+              <h3>${card.heading}</h3>
+              <p>${card.body}</p>
+            </article>
+          `).join("")}
         </div>
       </div>
-    `).join("");
-  } else {
-    content.innerHTML = `<div class="card card-corners"><h3>Detail analysis</h3><p style="color:var(--text-dim)">Under development...</p></div>`;
-  }
+    `).join("")}
+  `;
 }
 
 function closeDetail() {
   document.getElementById("detail-overlay").classList.remove("is-open");
 }
 
+function setCurrentSelection(type, id) {
+  currentSelections[type] = id;
+}
+
 // 暴露全局
 window.goToPage = goToPage;
 window.openDetail = openDetail;
 window.closeDetail = closeDetail;
+window.setCurrentSelection = setCurrentSelection;
 
 document.addEventListener("DOMContentLoaded", () => {
   initDataStreams();

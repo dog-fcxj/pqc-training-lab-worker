@@ -35,7 +35,17 @@ export function renderHandshake(container) {
 window.selectScenario = (id) => {
   const s = scenarios.find(x => x.id === id);
   const brief = document.getElementById("scenario-brief");
-  if (brief) brief.innerHTML = `<h2 style="font-size:24px;">${s.label}</h2><p style="color:var(--text-dim); margin-top:12px; font-size:14px; line-height:1.6;">${s.brief}</p>`;
+  if (brief) {
+    brief.innerHTML = `
+      <h2 style="font-size:24px; margin:0;">${s.label}</h2>
+      <p style="color:var(--text-dim); margin-top:12px; font-size:14px; line-height:1.6;">${s.brief}</p>
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:20px;">
+        <span style="border:1px solid rgba(168, 85, 247, 0.25); padding:8px 12px; font-size:11px; letter-spacing:0.08em; color:var(--accent-violet); text-transform:uppercase;">${s.stats}</span>
+        <span style="border:1px solid rgba(255,255,255,0.14); padding:8px 12px; font-size:11px; letter-spacing:0.08em; color:var(--text-dim); text-transform:uppercase;">${s.status}</span>
+      </div>
+    `;
+  }
+  if (window.setCurrentSelection) window.setCurrentSelection("handshake", s.id);
   
   document.querySelectorAll(".scenario-item").forEach(el => {
     const isTarget = el.innerText.includes(s.label);

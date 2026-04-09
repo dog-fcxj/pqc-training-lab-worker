@@ -14,7 +14,7 @@ export function renderPrinciples(container) {
         </div>
       </div>
       <div style="display: grid; grid-template-rows: 1fr auto;">
-        <div id="principle-stage" style="border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); min-height: 320px; border-radius: 4px; display:grid; place-items:center;">
+        <div id="principle-stage" style="border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); min-height: 320px; border-radius: 4px; display:grid; place-items:center; padding: 32px; box-sizing: border-box;">
           <!-- 动态演示区 -->
         </div>
         <div style="padding-top: 32px; display: flex; justify-content: space-between; align-items: flex-end;">
@@ -33,8 +33,35 @@ window.selectPrinciple = (idx) => {
   const p = principles[idx];
   const info = document.getElementById("principle-info");
   const stage = document.getElementById("principle-stage");
-  if (info) info.innerHTML = `<h3 style="margin:0; font-size:24px;">${p.label}</h3><p style="color:var(--text-dim); font-size:14px; margin-top:10px; line-height:1.6;">${p.brief}</p>`;
-  if (stage) stage.innerHTML = `<div style="color:var(--accent-cyan); font-family:'JetBrains Mono'; font-size:11px; opacity:0.5;">// SIMULATING_${p.id.toUpperCase()}_MODEL...</div>`;
+  if (info) {
+    info.innerHTML = `
+      <h3 style="margin:0; font-size:24px;">${p.label}</h3>
+      <p style="color:var(--text-dim); font-size:14px; margin-top:10px; line-height:1.6; max-width: 520px;">${p.brief}</p>
+    `;
+  }
+  if (stage) {
+    stage.innerHTML = `
+      <div style="display:grid; gap:24px; width:100%; max-width:540px;">
+        <div style="display:flex; justify-content:space-between; align-items:end; gap:24px;">
+          <div>
+            <p style="margin:0 0 12px 0; color:var(--accent-cyan); font-family:'JetBrains Mono'; font-size:11px; letter-spacing:0.18em;">MODEL CUE</p>
+            <div style="font-size:28px; font-weight:800; line-height:1.2;">${p.cue}</div>
+          </div>
+          <div style="width:88px; height:88px; border:1px solid var(--glass-border); border-radius:50%; display:grid; place-items:center; color:var(--accent-cyan); font-family:'JetBrains Mono'; font-size:12px;">
+            ${String(idx + 1).padStart(2, "0")}
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px;">
+          ${p.metrics.map((metric) => `
+            <div style="border:1px solid var(--glass-border); background:rgba(255,255,255,0.02); padding:14px 12px; font-size:12px; line-height:1.6; color:var(--text-dim);">
+              ${metric}
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+  if (window.setCurrentSelection) window.setCurrentSelection("principle", p.id);
   
   // 切换高亮样式
   document.querySelectorAll(".principle-item").forEach((el, i) => {

@@ -5,6 +5,8 @@
   --accent-magenta: #f43f5e;
   --glass-bg: rgba(30, 41, 59, 0.7);
   --glass-border: rgba(255, 255, 255, 0.2);
+  --border-glass: rgba(255, 255, 255, 0.16);
+  --text-dim: rgba(226, 232, 240, 0.74);
 }
 
 html, body {
@@ -94,3 +96,65 @@ h1 { font-size: clamp(48px, 6vw, 80px); line-height: 1.1; margin: 0; font-weight
 
 .detail-jump { font-size: 11px; font-weight: 800; color: var(--accent-cyan); text-transform: uppercase; cursor: pointer; letter-spacing: 0.1em; }
 .data-stream { position: absolute; color: var(--accent-cyan); font-family: 'JetBrains Mono'; opacity: 0.2; pointer-events: none; }
+
+.detail-content {
+  display: grid;
+  gap: 28px;
+}
+
+.detail-lead {
+  padding: 34px 38px;
+}
+
+.detail-eyebrow {
+  margin: 0 0 12px 0;
+  color: var(--accent-cyan);
+  font-family: 'JetBrains Mono';
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.detail-intro {
+  margin: 0;
+  max-width: 780px;
+  color: var(--text-dim);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.detail-section {
+  display: grid;
+  gap: 14px;
+}
+
+.detail-section-title {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detail-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.detail-card {
+  padding: 28px;
+}
+
+.detail-card h3 {
+  margin: 0 0 12px 0;
+  color: var(--accent-cyan);
+  font-size: 18px;
+}
+
+.detail-card p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.8;
+}
