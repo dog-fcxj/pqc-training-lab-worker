@@ -20,19 +20,6 @@ function setBodyViewportVar() {
   document.documentElement.style.setProperty("--app-height", `${window.innerHeight}px`);
 }
 
-function renderPageIfNeeded(idx) {
-  const container = document.getElementById(`section-${idx}`);
-  if (container && !container.dataset.rendered) {
-    pageModules[idx](container);
-    container.dataset.rendered = "true";
-    if (idx === 0) buildHeroNetwork();
-  }
-}
-
-function ensureAllPagesRendered() {
-  pageModules.forEach((_, idx) => renderPageIfNeeded(idx));
-}
-
 function goToPage(idx) {
   if (idx < 0 || idx >= pageModules.length) return;
   currentPage = idx;
@@ -44,7 +31,12 @@ function goToPage(idx) {
   }
   
   // 2. 动态渲染组件内容
-  renderPageIfNeeded(idx);
+  const container = document.getElementById(`section-${idx}`);
+  if (container && !container.dataset.rendered) {
+    pageModules[idx](container);
+    container.dataset.rendered = "true";
+    if (idx === 0) buildHeroNetwork(); // 仅 Hero 需要重新构建网络
+  }
 
   // 3. 更新导航状态
   document.querySelectorAll(".nav-dot").forEach((dot, i) => {
@@ -208,9 +200,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initDataStreams();
   const initialHash = window.location.hash.replace("#", "");
   const initialPage = Math.max(pageHashes.indexOf(initialHash), 0);
-  if (isMobileViewport()) {
-    ensureAllPagesRendered();
-  }
   goToPage(initialPage);
   
   document.querySelectorAll(".nav-dot").forEach(dot => {
@@ -223,7 +212,6 @@ window.addEventListener("resize", () => {
   const shell = document.getElementById("app-shell");
   if (!shell) return;
   if (isMobileViewport()) {
-    ensureAllPagesRendered();
     shell.style.transform = "";
   } else {
     shell.style.transform = `translateY(-${currentPage * 100}%)`;
