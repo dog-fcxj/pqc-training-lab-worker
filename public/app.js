@@ -208,9 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initDataStreams();
   const initialHash = window.location.hash.replace("#", "");
   const initialPage = Math.max(pageHashes.indexOf(initialHash), 0);
-  if (isMobileViewport()) {
-    ensureAllPagesRendered();
-  }
+  ensureAllPagesRendered();
   goToPage(initialPage);
   
   document.querySelectorAll(".nav-dot").forEach(dot => {
@@ -223,7 +221,6 @@ window.addEventListener("resize", () => {
   const shell = document.getElementById("app-shell");
   if (!shell) return;
   if (isMobileViewport()) {
-    ensureAllPagesRendered();
     shell.style.transform = "";
   } else {
     shell.style.transform = `translateY(-${currentPage * 100}%)`;
