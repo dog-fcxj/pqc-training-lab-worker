@@ -1,6 +1,8 @@
 import { heroMetrics, heroNarrative } from '../data.js';
 
 export function renderHero(container) {
+  const visibleBullets = heroNarrative.bullets.slice(0, 2);
+  const visibleMetrics = heroMetrics.slice(0, 3);
   const title = heroNarrative.title.replace("\n", "<br/>");
 
   container.innerHTML = `
@@ -12,7 +14,7 @@ export function renderHero(container) {
           ${heroNarrative.summary}
         </p>
         <div class="hero-bullet-list">
-          ${heroNarrative.bullets.map((item) => `
+          ${visibleBullets.map((item) => `
             <div class="hero-bullet-item">
               <span class="hero-bullet-mark"></span>
               <span>${item}</span>
@@ -29,7 +31,7 @@ export function renderHero(container) {
           <svg id="hero-network" viewBox="0 0 440 360" style="width:100%; height:100%;"></svg>
         </div>
         <div class="hero-metrics-grid">
-          ${heroMetrics.map((metric) => `
+          ${visibleMetrics.map((metric) => `
             <div class="hero-metric-card">
               <div class="hero-metric-value">${metric.value}</div>
               <div class="hero-metric-label">${metric.label}</div>
