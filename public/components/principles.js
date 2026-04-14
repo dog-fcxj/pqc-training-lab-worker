@@ -1,4 +1,4 @@
-import { principles } from '../data.js';
+import { principles, latticeLesson } from '../data.js';
 
 export function renderPrinciples(container) {
     container.innerHTML = `
@@ -22,10 +22,12 @@ export function renderPrinciples(container) {
                 background: rgba(0, 0, 0, 0.4);
                 padding: 2rem;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
                 position: relative;
                 border-right: 1px solid var(--glass-border);
+                min-height: 450px;
             }
             .principle-tutorial {
                 flex: 0 0 40%;
@@ -39,7 +41,7 @@ export function renderPrinciples(container) {
                 flex-grow: 1;
                 overflow-y: auto;
                 padding-right: 0.5rem;
-                max-height: 300px;
+                max-height: 350px;
             }
             /* Custom Scrollbar for step-content */
             .step-content::-webkit-scrollbar {
@@ -143,57 +145,128 @@ export function renderPrinciples(container) {
                 color: var(--accent-cyan);
             }
 
-            /* 1. Lattice Grid Styles */
-            .lattice-grid {
-                display: grid;
-                grid-template-columns: repeat(7, 1fr);
-                gap: 15px;
-                position: relative;
-            }
-            .grid-dot {
-                width: 14px;
-                height: 14px;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 50%;
-                cursor: pointer;
-                transition: all 0.3s;
-                position: relative;
-            }
-            .grid-dot:hover {
-                background: rgba(255, 255, 255, 0.3);
-                transform: scale(1.2);
-            }
-            .grid-dot.secret {
-                background: var(--accent-cyan);
-                box-shadow: 0 0 15px var(--accent-cyan);
-            }
-            .grid-dot.noise {
-                background: rgba(34, 211, 238, 0.3);
-                box-shadow: 0 0 8px rgba(34, 211, 238, 0.2);
-            }
-            .coord-label {
-                position: absolute;
-                top: -20px;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 0.7rem;
-                color: var(--accent-cyan);
-                white-space: nowrap;
+            /* --- Lattice/LWE Game Styles --- */
+            .lwe-equation {
                 font-family: 'JetBrains Mono', monospace;
+                font-size: 1.5rem;
+                color: #fff;
+                margin-bottom: 2rem;
+                background: rgba(255,255,255,0.05);
+                padding: 1rem 2rem;
+                border-radius: 10px;
+                border-left: 4px solid var(--accent-cyan);
             }
-            .quantum-icon {
+            .lwe-input-area {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1.5rem;
+            }
+            .lwe-input-group {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+            }
+            .lwe-number-input {
+                width: 80px;
+                padding: 0.8rem;
+                background: rgba(0,0,0,0.3);
+                border: 1px solid var(--glass-border);
+                border-radius: 8px;
+                color: #fff;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 1.2rem;
+                text-align: center;
+            }
+            .lwe-reveal-box {
+                margin-top: 1.5rem;
+                padding: 1rem;
+                background: rgba(16, 185, 129, 0.1);
+                border: 1px solid rgba(16, 185, 129, 0.3);
+                border-radius: 8px;
+                color: #10b981;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                display: none;
+            }
+            .lwe-axis {
+                width: 90%;
+                height: 40px;
+                border-bottom: 2px solid rgba(255,255,255,0.2);
+                position: relative;
+                margin-top: 3rem;
+            }
+            .axis-point {
                 position: absolute;
-                top: 20px;
-                right: 20px;
-                font-size: 3rem;
-                background: rgba(0,0,0,0.5);
-                padding: 10px;
+                bottom: -5px;
+                width: 10px;
+                height: 10px;
+                background: rgba(255,255,255,0.3);
+                border-radius: 50%;
+                transform: translateX(-50%);
+            }
+            .axis-point.candidate {
+                background: var(--accent-cyan);
+                box-shadow: 0 0 10px var(--accent-cyan);
+                width: 12px;
+                height: 12px;
+                bottom: -6px;
+                z-index: 2;
+            }
+            .axis-point.user-guess {
+                background: #f43f5e;
+                box-shadow: 0 0 10px #f43f5e;
+            }
+            .axis-label {
+                position: absolute;
+                bottom: -25px;
+                font-size: 0.6rem;
+                color: var(--text-dim);
+                transform: translateX(-50%);
+            }
+            .lattice-grid-2d {
+                display: grid;
+                grid-template-columns: repeat(7, 40px);
+                grid-template-rows: repeat(7, 40px);
+                gap: 10px;
+                background: rgba(255,255,255,0.02);
+                padding: 20px;
                 border-radius: 12px;
-                border: 1px solid var(--accent-magenta);
-                animation: pulse 2s infinite;
+            }
+            .grid-point {
+                width: 100%;
+                height: 100%;
+                background: rgba(255,255,255,0.1);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                font-size: 0.6rem;
+                color: transparent;
+                transition: all 0.2s;
+                position: relative;
+            }
+            .grid-point:hover {
+                background: rgba(255,255,255,0.3);
+                color: rgba(255,255,255,0.5);
+            }
+            .grid-point.plausible {
+                background: rgba(34, 211, 238, 0.4);
+                box-shadow: 0 0 8px rgba(34, 211, 238, 0.3);
+            }
+            .grid-point.secret-revealed {
+                background: #10b981 ! from;
+                box-shadow: 0 0 15px #10b981;
+                border: 2px solid #fff;
+                z-index: 3;
+            }
+            .grid-point.user-wrong {
+                background: #f43f5e;
+                box-shadow: 0 0 10px #f43f5e;
             }
 
-            /* 2. Merkle Tree Styles */
+            /* --- Merkle Tree Styles --- */
             .merkle-viz {
                 display: flex;
                 flex-direction: column;
@@ -273,7 +346,7 @@ export function renderPrinciples(container) {
                 transform: translateX(0);
             }
 
-            /* 3. Hamming Code Styles */
+            /* --- Hamming Code Styles --- */
             .hamming-viz {
                 display: flex;
                 flex-direction: column;
@@ -354,24 +427,25 @@ export function renderPrinciples(container) {
         </style>
 
         <div class="principles-container">
-            <!-- 1. Lattice Panel -->
+            <!-- 1. Lattice Panel (LWE Guessing Game) -->
             <div class="principle-panel" id="panel-lattice">
-                <div class="principle-visual">
-                    <div class="lattice-grid" id="lattice-grid">
-                        ${Array(49).fill(0).map((_, i) => `
-                            <div class="grid-dot" data-index="${i}"></div>
-                        `).join('')}
-                    </div>
-                    <div id="quantum-shield" class="quantum-icon" style="display:none">🖥️ ❌</div>
+                <div class="principle-visual" id="lwe-visual">
+                    <!-- Dynamic content will be injected here -->
                 </div>
                 <div class="principle-tutorial">
                     <div class="step-content">
-                        <div class="step-title" id="lattice-title">格密码探索</div>
-                        <div class="intro-text">格密码是当前最主流的抗量子公钥方案，用来替代未来可能被量子计算破解的传统算法。它的核心做法是：把秘密藏在一个带规则的点阵里，再故意加上一点噪声，让合法用户能解，攻击者却难以反推。</div>
-                        <div class="step-desc" id="lattice-desc">先把这张图当成「秘密位置地图」。现实中的格密码在高维空间里运算，这里用二维点阵做简化示意；每个格点都代表一个可能的秘密。先选一个点，再比较「暴露精确位置」和「加噪隐藏位置」的差别。</div>
+                        <div class="step-title" id="lattice-title">LWE 猜谜实验</div>
+                        <div class="intro-text">你是攻击者，要从公开方程里猜出秘密 s。体验噪声如何让「精确反推」变成「盲猜」。</div>
+                        
+                        <div id="lwe-stage-ui">
+                            <!-- Stage specific UI -->
+                        </div>
+
+                        <div class="lwe-reveal-box" id="lwe-reveal"></div>
+                        
                         <div class="step-actions">
-                            <button class="btn-next" id="lattice-next" style="display:none">下一步</button>
-                            <button class="btn-reset" id="lattice-reset">重置</button>
+                            <button class="btn-next" id="lwe-next" style="display:none">下一关 →</button>
+                            <button class="btn-reset" id="lwe-reset">重新开始</button>
                         </div>
                     </div>
                     <div class="panel-footer">
@@ -492,78 +566,154 @@ export function renderPrinciples(container) {
     initCodeInteraction(container);
 }
 
-// 1. Lattice Interaction Logic
+// 1. Lattice Interaction Logic (LWE Guessing Game)
 function initLatticeInteraction(container) {
-    const grid = container.querySelector('#lattice-grid');
-    const dots = grid.querySelectorAll('.grid-dot');
-    const title = container.querySelector('#lattice-title');
-    const desc = container.querySelector('#lattice-desc');
-    const nextBtn = container.querySelector('#lattice-next');
-    const resetBtn = container.querySelector('#lattice-reset');
-    const shield = container.querySelector('#quantum-shield');
+    const visual = container.querySelector('#lwe-visual');
+    const stageUI = container.querySelector('#lwe-stage-ui');
+    const revealBox = container.querySelector('#lwe-reveal');
+    const nextBtn = container.querySelector('#lwe-next');
+    const resetBtn = container.querySelector('#lwe-reset');
 
-    let step = 0;
-    let secretIndex = -1;
+    let currentStageIndex = 0;
 
-    const reset = () => {
-        step = 0;
-        secretIndex = -1;
-        dots.forEach(d => {
-            d.className = 'grid-dot';
-            d.innerHTML = '';
-        });
-        title.innerText = '格密码探索';
-        desc.innerText = '先把这张图当成「秘密位置地图」。现实中的格密码在高维空间里运算，这里用二维点阵做简化示意；每个格点都代表一个可能的秘密。先选一个点，再比较「暴露精确位置」和「加噪隐藏位置」的差别。';
+    const renderStage = () => {
+        const stage = latticeLesson.stages[currentStageIndex];
+        revealBox.style.display = 'none';
         nextBtn.style.display = 'none';
-        shield.style.display = 'none';
+        
+        // 1. Render Visual Area
+        if (stage.id.includes('1d')) {
+            visual.innerHTML = `
+                <div class="lwe-equation">${stage.equation}</div>
+                <div class="lwe-axis" id="lwe-axis">
+                    ${Array(23).fill(0).map((_, i) => `
+                        <div class="axis-point" style="left: ${(i/22)*100}%"></div>
+                        ${i % 5 === 0 ? `<div class="axis-label" style="left: ${(i/22)*100}%">${i}</div>` : ''}
+                    `).join('')}
+                </div>
+            `;
+        } else {
+            visual.innerHTML = `
+                <div class="lwe-equation" style="font-size: 1.1rem">
+                    ${stage.equations.map(eq => `<div>${eq.label}</div>`).join('')}
+                </div>
+                <div class="lattice-grid-2d">
+                    ${Array(49).fill(0).map((_, i) => {
+                        const s1 = i % 7;
+                        const s2 = Math.floor(i / 7);
+                        return `<div class="grid-point" data-s1="${s1}" data-s2="${s2}">(${s1},${s2})</div>`;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // 2. Render UI Area
+        stageUI.innerHTML = `
+            <div class="step-desc"><b>${stage.title}</b><br>${stage.hint}</div>
+            <div class="lwe-input-area">
+                ${stage.id.includes('1d') ? `
+                    <div class="lwe-input-group">
+                        <label>猜测秘密 s = </label>
+                        <input type="number" class="lwe-number-input" id="guess-input" min="0" max="22">
+                    </div>
+                ` : `
+                    <div class="step-desc" style="color: var(--accent-cyan); font-style: italic;">点击左侧格点提交猜测</div>
+                `}
+                <button class="btn-next" id="submit-guess" style="margin-top:0.5rem">提交猜测</button>
+            </div>
+        `;
+
+        // 3. Add Listeners
+        const submitBtn = stageUI.querySelector('#submit-guess');
+        
+        if (stage.id.includes('1d')) {
+            const input = stageUI.querySelector('#guess-input');
+            submitBtn.onclick = () => {
+                const guess = parseInt(input.value);
+                if (isNaN(guess)) return;
+                handleGuess(guess);
+            };
+        } else {
+            submitBtn.style.display = 'none'; // Grid stages use click
+            const points = visual.querySelectorAll('.grid-point');
+            points.forEach(p => {
+                p.onclick = () => {
+                    const s1 = parseInt(p.dataset.s1);
+                    const s2 = parseInt(p.dataset.s2);
+                    handleGuess([s1, s2]);
+                };
+            });
+        }
     };
 
-    grid.addEventListener('click', (e) => {
-        if (step !== 0) return;
-        const dot = e.target.closest('.grid-dot');
-        if (!dot) return;
-
-        secretIndex = parseInt(dot.dataset.index);
-        dot.classList.add('secret');
-        const x = secretIndex % 7;
-        const y = Math.floor(secretIndex / 7);
-        dot.innerHTML = `<span class="coord-label">(${x},${y})</span>`;
-
-        step = 1;
-        title.innerText = 'Step 1：先看精确坐标';
-        desc.innerText = '你选的点就像把藏宝点精确标在地图上。对攻击者来说，目标很明确；在传统公钥算法里，量子计算机会让这种「从公开信息反推秘密」的过程更容易。';
-        nextBtn.style.display = 'block';
-        nextBtn.innerText = '下一步：加噪保护 →';
-    });
-
-    nextBtn.addEventListener('click', () => {
-        if (step === 1) {
-            step = 2;
-            title.innerText = 'Step 2：给答案加一点模糊';
-            desc.innerText = '现在给正确点周围加上一圈模糊线索，像把「就在这里」改成「应该在这片区域附近」。合法接收方知道怎样消掉这点误差，攻击者看到的却是一团难以分辨的候选点，这就是 LWE 的直觉。';
-            
-            // Add noise around secret
-            const sx = secretIndex % 7;
-            const sy = Math.floor(secretIndex / 7);
-            dots.forEach((d, i) => {
-                const x = i % 7;
-                const y = Math.floor(i / 7);
-                const dist = Math.abs(x - sx) + Math.abs(y - sy);
-                if (dist > 0 && dist <= 2 && Math.random() > 0.3) {
-                    d.classList.add('noise');
-                }
+    const handleGuess = (guess) => {
+        const stage = latticeLesson.stages[currentStageIndex];
+        const is1D = stage.id.includes('1d');
+        const isCorrect = is1D ? guess === stage.secret : (guess[0] === stage.secret[0] && guess[1] === stage.secret[1]);
+        
+        // Visual Feedback
+        if (is1D) {
+            const axis = visual.querySelector('#lwe-axis');
+            // Show all candidates
+            stage.candidates.forEach(c => {
+                const p = document.createElement('div');
+                p.className = 'axis-point candidate';
+                p.style.left = `${(c/22)*100}%`;
+                axis.appendChild(p);
             });
-            nextBtn.innerText = '下一步：量子挑战 →';
-        } else if (step === 2) {
-            step = 3;
-            title.innerText = 'Step 3：为什么这能抗量子';
-            desc.innerText = '攻击者真正要解决的，不再是读出一个精确坐标，而是从很多带误差的关系里找出隐藏的正确短向量。已知量子算法还不能高效完成这件事，所以格密码被认为能抵抗量子攻击。';
-            shield.style.display = 'block';
-            nextBtn.style.display = 'none';
+            // Show user guess if wrong
+            if (!isCorrect) {
+                const p = document.createElement('div');
+                p.className = 'axis-point user-guess';
+                p.style.left = `${(guess/22)*100}%`;
+                axis.appendChild(p);
+            }
+        } else {
+            const points = visual.querySelectorAll('.grid-point');
+            // Show all plausible points
+            stage.plausiblePoints.forEach(pt => {
+                const idx = pt[1] * 7 + pt[0];
+                points[idx].classList.add('plausible');
+            });
+            // Highlight secret
+            const sIdx = stage.secret[1] * 7 + stage.secret[0];
+            points[sIdx].classList.add('secret-revealed');
+            // Mark user wrong if so
+            if (!isCorrect) {
+                const uIdx = guess[1] * 7 + guess[0];
+                points[uIdx].classList.add('user-wrong');
+            }
         }
-    });
 
-    resetBtn.addEventListener('click', reset);
+        // Result UI
+        revealBox.innerHTML = `
+            <div style="font-weight: bold; margin-bottom: 0.5rem;">
+                ${isCorrect ? '✅ 猜对了！' : is1D ? '❌ 猜错了' : '你不是算错了，是公开信息本身就不够唯一'}
+            </div>
+            ${stage.reveal}
+        `;
+        revealBox.style.display = 'block';
+        nextBtn.style.display = 'block';
+        
+        if (currentStageIndex === latticeLesson.stages.length - 1) {
+            nextBtn.innerText = '实验完成 🎉';
+            nextBtn.onclick = null;
+            nextBtn.disabled = true;
+        } else {
+            nextBtn.innerText = '下一关 →';
+            nextBtn.onclick = () => {
+                currentStageIndex++;
+                renderStage();
+            };
+        }
+    };
+
+    resetBtn.onclick = () => {
+        currentStageIndex = 0;
+        renderStage();
+    };
+
+    renderStage();
 }
 
 // 2. Hash Tree Interaction Logic

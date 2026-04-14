@@ -280,3 +280,55 @@ export const keySizeComparison = [
   { algorithm: "SLH-DSA-128f", type: "pqc", pk: 32, sig: 17088 },
   { algorithm: "HQC-128", type: "pqc", pk: 2249, ct: 4497 },
 ];
+
+export const latticeLesson = {
+  modulus: 23,
+  noiseBound: 2,
+  stages: [
+    {
+      id: "exact-1d",
+      title: "第一关：无噪声，秒解",
+      equation: "7 · s ≡ 21 (mod 23)",
+      hint: "试试用 s = 21 ÷ 7 来算",
+      secret: 3,
+      a: 7, b: 21, e: 0,
+      candidates: [3],
+      reveal: "没有噪声时，公开方程几乎直接把秘密暴露出来。量子计算机用 Shor 算法可以更快地破解这类问题。"
+    },
+    {
+      id: "noisy-1d",
+      title: "第二关：加一点噪声",
+      equation: "7 · s + e ≡ 0 (mod 23)，e ∈ [-2, 2]",
+      hint: "b=0 可能是 7·s+e 的结果，e 在 -2 到 2 之间",
+      secret: 3,
+      a: 7, b: 0, e: -2,
+      candidates: [0, 3, 10, 13, 20],
+      reveal: "一旦加入小噪声，原来唯一的答案变成了 5 个候选！攻击者猜中概率从 100% 降到 20%。"
+    },
+    {
+      id: "grid-exact",
+      title: "第三关：二维精确方程",
+      equations: [
+        { label: "s₁ + s₂ = 4", a: [1, 1], b: 4, e: 0 },
+        { id: "e2", label: "s₁ + 2·s₂ = 5", a: [1, 2], b: 5, e: 0 }
+      ],
+      secret: [3, 1],
+      gridSize: 7,
+      plausiblePoints: [[3, 1]],
+      reveal: "无噪声时，两条线唯一相交于 (3,1)——秘密一目了然。"
+    },
+    {
+      id: "grid-noisy",
+      title: "第四关：二维带噪攻击（核心挑战）",
+      equations: [
+        { label: "s₁ + s₂ + e₁ ≡ 2 (mod 7)", a: [1, 1], b: 2, e: -2 },
+        { label: "s₁ + 2·s₂ + e₂ ≡ 3 (mod 7)", a: [1, 2], b: 3, e: -2 },
+        { label: "2·s₁ + s₂ + e₃ ≡ 5 (mod 7)", a: [2, 1], b: 5, e: -2 }
+      ],
+      secret: [3, 1],
+      gridSize: 7,
+      plausiblePoints: [[1,1],[1,2],[2,0],[2,1],[3,0],[3,1]],
+      reveal: "带噪后，唯一解变成了 6 个候选点！你猜中的概率只有 1/6。真实 ML-KEM 在高维空间运算，候选爆炸比这严重得多。"
+    }
+  ]
+};
