@@ -79,12 +79,47 @@ html, body {
   min-height: 100vh; padding: 120px 60px 80px 60px;
   display: flex; align-items: center; justify-content: center;
   box-sizing: border-box;
+  position: relative;
 }
 .section-hero {
   height: 100vh; padding-top: 64px;
 }
 
-/* 卡片 */
+/* 章节标题头 */
+.section-header {
+  position: absolute;
+  top: 80px; left: 60px;
+  display: flex; align-items: baseline; gap: 1rem;
+}
+.section-number {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem; font-weight: 700;
+  color: var(--accent-cyan); opacity: 0.5;
+  letter-spacing: 0.15em;
+}
+.section-title {
+  font-size: 0.85rem; font-weight: 700;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+
+/* 章节分隔线 */
+.section-divider {
+  width: 100%; max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 60px; box-sizing: border-box;
+}
+.section-divider-inner {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+}
+
+/* 导航高亮增强 */
+.nav-link.is-active {
+  color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.15);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.15);
+}
 .card {
   background: var(--glass-bg); border: 1px solid var(--glass-border);
   border-radius: 12px; padding: 48px; backdrop-filter: blur(40px);
