@@ -235,22 +235,43 @@ function exhaustiveMlDsaSignature(A, t, s1, message) {
     return null;
 }
 
+// ML-DSA: 每次采样新 y，计算确定性 c，检查 z 范数（匹配真实 Dilithium 流程）
 function mlDsaSign(sk, message) {
     const A = sk._A;
     const t = sk._t;
-    let allAttempts = [];
+    const allAttempts = [];
 
-    for (let sample = 0; sample < 10; sample += 1) {
+    for (let sample = 0; sample < 50; sample += 1) {
         const y = randomVector(4, -8, 8);
-        const result = tryMlDsaSignature(A, t, sk.s1, y, message);
-        allAttempts = allAttempts.concat(result.attempts);
+        // 1. 计算承诺 w = A·y mod q
+        const w = matMulMod(A, y, MLKEM_Q);
+        // 2. 从承诺和消息确定性地计算挑战 c
+        const c = simpleHash({ w, message }) % 5;
+        // 3. 计算响应 z = y + c·s1
+        const z = addVectors(y, scaleVector(sk.s1, c));
+        const norm = infinityNorm(z);
 
-        if (result.sig) {
-            return { sig: result.sig, attempts: allAttempts.length, intermediates: { attempts: allAttempts } };
+        const attemptData = { y: y.slice(), w, c, z: z.slice(), norm, rejected: true };
+
+        if (norm > 6) {
+            // 范数过大 → 拒绝，重新采样 y
+            allAttempts.push(attemptData);
+            continue;
         }
+
+        // 4. 验证一致性：Az - tc mod q 应该重建出 w
+        const wPrime = subVectorsMod(matMulMod(A, z, MLKEM_Q), scaleVector(t, c), MLKEM_Q);
+        const cPrime = simpleHash({ w: wPrime, message }) % 5;
+
+        if (cPrime === c) {
+            attemptData.rejected = false;
+            allAttempts.push(attemptData);
+            return { sig: { z, c }, attempts: allAttempts.length, intermediates: { attempts: allAttempts } };
+        }
+        allAttempts.push(attemptData);
     }
 
-    // 如果 10 次随机尝试都被拒绝，则退化为小范围穷举，保证课堂演示可验证。
+    // 兜底穷举
     const fallback = exhaustiveMlDsaSignature(A, t, sk.s1, message);
     return { sig: fallback, attempts: allAttempts.length, intermediates: { attempts: allAttempts } };
 }

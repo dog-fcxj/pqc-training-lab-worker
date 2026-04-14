@@ -708,10 +708,10 @@ export function renderAlgorithms(container) {
             case 'ml-dsa':
                 const imS = result.intermediates;
                 let log = imS.attempts.map((a, i) => {
-                    const status = a.rejected ? '❌ 拒绝' : '✅ 通过';
-                    return `尝试 #${i+1}：y=${JSON.stringify(a.y)} → ||z||∞ = ${a.norm.toFixed(1)} ${status}`;
-                }).join('\n');
-                computation = `消息 = "${escapeHtml(demoStates[id].message)}"\n采样随机向量 y，计算挑战 c = H(Ay, message)\n\n执行拒绝采样 (Rejection Sampling):\n${log}\n\n最终 z = y + c·s1\n签名 sig = (z, c)`;
+                    const status = a.rejected ? '❌ 范数过大，拒绝！重新采样 y...' : '✅ 范数合格，签名通过！';
+                    return `尝试 #${i+1}：\n  采样 y = [${a.y.join(', ')}]\n  w = A·y mod q → c = H(w, msg) % 5 = ${a.c}\n  z = y + ${a.c}·s1 = [${a.z.join(', ')}]\n  ||z||∞ = ${a.norm.toFixed(1)} ${a.norm > 6 ? '> 6' : '≤ 6'} → ${status}`;
+                }).join('\n\n');
+                computation = `消息 = "${escapeHtml(demoStates[id].message)}"\n\n执行拒绝采样 (Rejection Sampling):\n每次采样新的随机 y → 计算确定性挑战 c → 检查响应 z 的范数\n\n${log}`;
                 break;
             case 'slh-dsa':
                 let pathLog = result.sig.authPath.map((p, i) => `  层 #${i}: 兄弟节点 ${p.position} = ${p.siblingHash}`).join('\n');
