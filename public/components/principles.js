@@ -1,4 +1,4 @@
-import { principles, latticeLesson } from '../data.js';
+import { principles } from '../data.js';
 
 export function renderPrinciples(container) {
     container.innerHTML = `
@@ -36,6 +36,7 @@ export function renderPrinciples(container) {
                 flex-direction: column;
                 background: rgba(255, 255, 255, 0.02);
                 box-sizing: border-box;
+                overflow-y: auto;
             }
             .step-content {
                 flex-grow: 1;
@@ -568,16 +569,53 @@ export function renderPrinciples(container) {
 
 // 1. Lattice Interaction Logic (LWE Guessing Game)
 function initLatticeInteraction(container) {
+    // Random LWE equation generator (Codex)
+    function generateStages() {
+        const q1 = 23, q2 = 7;
+        const noise1 = new Set([0, 1, 2, 21, 22]);
+        const noise2 = new Set([0, 1, 2, 5, 6]);
+        const mod = (v, m) => ((v % m) + m) % m;
+        const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+        const rndNoise = () => { let n = 0; while (!n) n = rnd(-2, 2); return n; };
+
+        const a1 = rnd(2, 22), s1d = rnd(0, 22);
+        const b1 = mod(a1 * s1d, q1);
+        const e1 = rndNoise(), b2 = mod(a1 * s1d + e1, q1);
+        const cands = [];
+        for (let c = 0; c < q1; c++) if (noise1.has(mod(b2 - a1 * c, q1))) cands.push(c);
+
+        const gs = [rnd(0, 6), rnd(0, 6)];
+        let eq2d = [];
+        while (!eq2d.length) {
+            const f = [rnd(1, 6), rnd(1, 6)], s = [rnd(1, 6), rnd(1, 6)];
+            if (mod(f[0]*s[1] - f[1]*s[0], q2) !== 0)
+                eq2d = [f, s].map(c => ({ label: `${c[0]}·s₁ + ${c[1]}·s₂ = ${mod(c[0]*gs[0]+c[1]*gs[1], q2)}`, a: c, b: mod(c[0]*gs[0]+c[1]*gs[1], q2), e: 0 }));
+        }
+        let neq = [], pp = [];
+        while (pp.length < 3) {
+            neq = Array.from({length: 3}, () => { const c = [rnd(1,6), rnd(1,6)], e = rndNoise(), b = mod(c[0]*gs[0]+c[1]*gs[1]+e, q2); return { label: `${c[0]}·s₁ + ${c[1]}·s₂ + e ≡ ${b} (mod 7)`, a: c, b, e }; });
+            pp = [];
+            for (let x = 0; x < q2; x++) for (let y = 0; y < q2; y++) if (neq.every(eq => noise2.has(mod(eq.b - eq.a[0]*x - eq.a[1]*y, q2)))) pp.push([x, y]);
+        }
+        return [
+            { id:'exact-1d', title:'第一关：无噪声，秒解', equation:`${a1} · s ≡ ${b1} (mod 23)`, hint:`没有噪声时方程只有一个解，在 0-22 中找到满足 ${a1}·s ≡ ${b1} 的 s`, secret:s1d, candidates:[s1d], reveal:'没有噪声时，公开方程几乎直接把秘密暴露出来。量子计算机用 Shor 算法可以更快地破解这类问题。' },
+            { id:'noisy-1d', title:'第二关：加一点噪声', equation:`${a1} · s + e ≡ ${b2} (mod 23)，e ∈ [-2, 2]`, hint:`b=${b2} 可能来自 ${a1}·s 加上 -2 到 2 的扰动`, secret:s1d, candidates:cands, reveal:`一旦加入小噪声，原来唯一的答案变成了 ${cands.length} 个候选！攻击者猜中概率从 100% 降到 ${Math.round(100/cands.length)}%。` },
+            { id:'grid-exact', title:'第三关：二维精确方程', hint:'两条独立方程在 mod 7 下只交于一个点', equations:eq2d, secret:gs.slice(), gridSize:7, plausiblePoints:[gs.slice()], reveal:`无噪声时，两条线唯一相交于 (${gs[0]},${gs[1]})——秘密一目了然。` },
+            { id:'grid-noisy', title:'第四关：二维带噪攻击（核心挑战）', hint:'每条方程允许小噪声，找出所有同时满足约束的候选点', equations:neq, secret:gs.slice(), gridSize:7, plausiblePoints:pp, reveal:`带噪后，唯一解变成了 ${pp.length} 个候选点！你猜中的概率只有 1/${pp.length}。真实 ML-KEM 在高维空间运算，候选爆炸比这严重得多。` }
+        ];
+    }
+
     const visual = container.querySelector('#lwe-visual');
     const stageUI = container.querySelector('#lwe-stage-ui');
     const revealBox = container.querySelector('#lwe-reveal');
     const nextBtn = container.querySelector('#lwe-next');
     const resetBtn = container.querySelector('#lwe-reset');
+    const stages = generateStages();
 
     let currentStageIndex = 0;
 
     const renderStage = () => {
-        const stage = latticeLesson.stages[currentStageIndex];
+        const stage = stages[currentStageIndex];
         revealBox.style.display = 'none';
         nextBtn.style.display = 'none';
         
@@ -596,6 +634,9 @@ function initLatticeInteraction(container) {
             visual.innerHTML = `
                 <div class="lwe-equation" style="font-size: 1.1rem">
                     ${stage.equations.map(eq => `<div>${eq.label}</div>`).join('')}
+                </div>
+                <div style="font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 10px;">
+                    横轴 = s₁（0-6），纵轴 = s₂（0-6）
                 </div>
                 <div class="lattice-grid-2d">
                     ${Array(49).fill(0).map((_, i) => {
@@ -647,10 +688,30 @@ function initLatticeInteraction(container) {
     };
 
     const handleGuess = (guess) => {
-        const stage = latticeLesson.stages[currentStageIndex];
+        const stage = stages[currentStageIndex];
         const is1D = stage.id.includes('1d');
+        const isExact = stage.id.includes('exact');
         const isCorrect = is1D ? guess === stage.secret : (guess[0] === stage.secret[0] && guess[1] === stage.secret[1]);
         
+        if (isExact && !isCorrect) {
+            // Bug 1: Handle wrong guess for exact stages
+            revealBox.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 0.5rem; color: #f43f5e;">
+                    ❌ 不对哦，再想想！
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-dim);">${stage.hint}</div>
+            `;
+            revealBox.style.display = 'block';
+            revealBox.style.background = 'rgba(244, 63, 94, 0.1)';
+            revealBox.style.borderColor = 'rgba(244, 63, 94, 0.3)';
+            revealBox.style.color = '#f43f5e';
+            nextBtn.style.display = 'none';
+            
+            // Bug 3: Scroll to show feedback
+            revealBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            return;
+        }
+
         // Visual Feedback
         if (is1D) {
             const axis = visual.querySelector('#lwe-axis');
@@ -693,9 +754,17 @@ function initLatticeInteraction(container) {
             ${stage.reveal}
         `;
         revealBox.style.display = 'block';
+        // Reset styles for successful/noisy reveal
+        revealBox.style.background = 'rgba(16, 185, 129, 0.1)';
+        revealBox.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+        revealBox.style.color = '#10b981';
+        
         nextBtn.style.display = 'block';
         
-        if (currentStageIndex === latticeLesson.stages.length - 1) {
+        // Bug 3: Scroll to revealBox
+        revealBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        if (currentStageIndex === stages.length - 1) {
             nextBtn.innerText = '实验完成 🎉';
             nextBtn.onclick = null;
             nextBtn.disabled = true;
@@ -710,6 +779,8 @@ function initLatticeInteraction(container) {
 
     resetBtn.onclick = () => {
         currentStageIndex = 0;
+        stages.length = 0;
+        stages.push(...generateStages());
         renderStage();
     };
 
