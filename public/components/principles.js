@@ -14,7 +14,6 @@ export function renderPrinciples(container) {
                 background: var(--glass-bg);
                 border: 1px solid var(--glass-border);
                 border-radius: 1.5rem;
-                overflow: hidden;
                 box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             }
             .principle-visual {
@@ -806,6 +805,7 @@ function initHashInteraction(container) {
     const svg = container.querySelector('#tree-lines');
 
     let lastClickedLeafId = 'node-l0';
+    let animating = false;
 
     const drawLines = () => {
         svg.innerHTML = '';
@@ -855,6 +855,8 @@ function initHashInteraction(container) {
 
     leaves.forEach(leaf => {
         leaf.addEventListener('click', async () => {
+            if (animating) return;
+            animating = true;
             reset();
             lastClickedLeafId = leaf.id;
             desc.style.display = 'none';
@@ -888,31 +890,49 @@ function initHashInteraction(container) {
                 log.appendChild(line);
                 setTimeout(() => line.classList.add('visible'), 10);
             }
+            animating = false;
         });
     });
 
     tamperBtn.addEventListener('click', () => {
+        if (animating) return;
         reset();
         container.querySelector('#hash-tamper-guide').style.display = 'none';
-        
+
         const leaf = container.querySelector(`#${lastClickedLeafId}`);
         const parentId = (lastClickedLeafId === 'node-l0' || lastClickedLeafId === 'node-l1') ? 'node-h0' : 'node-h1';
         const parent = container.querySelector(`#${parentId}`);
         const root = container.querySelector('#node-root');
+        const origLeaf = leaf.dataset.val;
+        const origParent = parent.dataset.val;
+        const origRoot = root.dataset.val;
 
-        leaf.querySelector('.node-val').innerText = 'xxxx';
+        // Generate fake but realistic-looking tampered hashes
+        const fakeHash = () => Math.floor(Math.random()*65536).toString(16).padStart(4,'0');
+        const tamperedLeaf = fakeHash();
+        const tamperedParent = fakeHash();
+        const tamperedRoot = fakeHash();
+
+        leaf.querySelector('.node-val').innerText = tamperedLeaf;
         leaf.classList.add('error');
-        
+
         setTimeout(() => {
-            parent.querySelector('.node-val').innerText = 'beef';
+            parent.querySelector('.node-val').innerText = tamperedParent;
             parent.classList.add('error');
         }, 500);
 
         setTimeout(() => {
-            root.querySelector('.node-val').innerText = 'dead';
+            root.querySelector('.node-val').innerText = tamperedRoot;
             root.classList.add('error');
             desc.style.display = 'block';
-            desc.innerText = '当一个叶子被改掉时，它上面的父节点和根节点都会跟着变，因为这些值都是重新哈希出来的。验证者手里保存的仍是旧根值，所以一比对就能知道这份数据已经被篡改。';
+            log.style.display = 'block';
+            log.innerHTML = `
+                <div class="trace-line visible">🔴 ${lastClickedLeafId.slice(-2).toUpperCase()} 被篡改: ${origLeaf} → <span style="color:var(--accent-magenta)">${tamperedLeaf}</span></div>
+                <div class="trace-line visible">🔴 父节点重算: ${origParent} → <span style="color:var(--accent-magenta)">${tamperedParent}</span></div>
+                <div class="trace-line visible">🔴 根值重算: ${origRoot} → <span style="color:var(--accent-magenta)">${tamperedRoot}</span></div>
+                <div class="trace-line visible" style="margin-top:0.5rem">⚠️ 验证者持有的旧根值 <b>${origRoot}</b> ≠ 新根值 <b>${tamperedRoot}</b></div>
+            `;
+            desc.innerText = '篡改一个叶子 → 整条路径的哈希全部改变 → 根值不再匹配 → 篡改被发现！这就是 Merkle 树的完整性保护。';
         }, 1000);
     });
 
