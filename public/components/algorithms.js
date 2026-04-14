@@ -668,6 +668,9 @@ export function renderAlgorithms(container) {
                             <select id="slh-dsa-idx">
                                 ${[0,1,2,3,4,5,6,7].map(i => `<option value="${i}" ${state.leafIndex === i ? 'selected' : ''}>${i}</option>`).join('')}
                             </select>
+                            <div style="font-size:0.75rem; color:var(--text-dim); margin-top:0.5rem; line-height:1.4">
+                                💡 在真实 SLH-DSA 中，待签名的消息经过哈希后决定使用哪个叶子（FORS 索引）。这里简化为手动选择叶子索引，等价于"选择用哪把一次性私钥来签名"。
+                            </div>
                         </div>
                     ` : ''}
                     
