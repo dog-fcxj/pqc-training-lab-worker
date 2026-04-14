@@ -4,7 +4,6 @@ import { renderPrinciples } from './components/principles.js';
 import { renderAlgorithms } from './components/algorithms.js';
 import { renderHandshake } from './components/handshake.js';
 import { renderAdoption } from './components/adoption.js';
-import { renderMigration } from './components/migration.js';
 
 const sectionModules = {
   hero: renderHero,
@@ -12,7 +11,6 @@ const sectionModules = {
   algorithms: renderAlgorithms,
   protocols: renderHandshake,
   adoption: renderAdoption,
-  migration: renderMigration,
 };
 
 // IntersectionObserver: 懒加载渲染 + 导航高亮
