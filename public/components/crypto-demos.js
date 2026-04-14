@@ -88,7 +88,8 @@ function mlKemKeyGen() {
     const A = cloneMatrix(MLKEM_A);
     const s = randomVector(4, 0, 4);
     const e = randomVector(4, -2, 2);
-    const b = A.map((row, index) => mod(row.reduce((sum, value, column) => sum + value * s[column], 0) + e[index], MLKEM_Q));
+    const dotProducts = A.map((row) => row.reduce((sum, value, column) => sum + value * s[column], 0));
+    const b = dotProducts.map((val, index) => mod(val + e[index], MLKEM_Q));
     const pk = { A, b };
     const sk = { s: s.slice() };
 
@@ -96,7 +97,14 @@ function mlKemKeyGen() {
     attachHidden(pk, '_s', s.slice());
     attachHidden(pk, '_e', e.slice());
 
-    return { pk, sk };
+    return { 
+        pk, 
+        sk, 
+        intermediates: { 
+            dotProducts, 
+            beforeNoise: dotProducts 
+        } 
+    };
 }
 
 function mlKemEncaps(pk) {
@@ -107,13 +115,19 @@ function mlKemEncaps(pk) {
         const e1 = randomVector(4, -2, 2);
         const e2 = randInt(-2, 2);
         const m = randInt(0, 1);
-        const u = addVectorsMod(matMulMod(ATranspose, r, MLKEM_Q), e1, MLKEM_Q);
-        const v = mod(dotMod(pk.b, r, MLKEM_Q) + e2 + (MLKEM_HALF_Q * m), MLKEM_Q);
+        const uBeforeNoise = matMulMod(ATranspose, r, MLKEM_Q);
+        const u = addVectorsMod(uBeforeNoise, e1, MLKEM_Q);
+        const bDotR = dotMod(pk.b, r, MLKEM_Q);
+        const v = mod(bDotR + e2 + (MLKEM_HALF_Q * m), MLKEM_Q);
         const ct = { u, v };
 
         if (!pk._s || decodeMlKemBit(mod(v - dotMod(pk._s, u, MLKEM_Q), MLKEM_Q)) === m) {
             attachHidden(ct, '_sharedSecret', m);
-            return { ct, sharedSecret: m };
+            return { 
+                ct, 
+                sharedSecret: m,
+                intermediates: { r, e1, e2, m, bDotR, uBeforeNoise }
+            };
         }
     }
 
@@ -126,16 +140,28 @@ function mlKemEncaps(pk) {
 
     attachHidden(ct, '_sharedSecret', fallbackSecret);
 
-    return { ct, sharedSecret: fallbackSecret };
+    return { 
+        ct, 
+        sharedSecret: fallbackSecret,
+        intermediates: { 
+            r: [0,0,0,0], e1: [0,0,0,0], e2: 0, m: fallbackSecret, 
+            bDotR: 0, uBeforeNoise: [0,0,0,0] 
+        }
+    };
 }
 
 function mlKemDecaps(sk, ct) {
-    const phase = mod(ct.v - dotMod(sk.s, ct.u, MLKEM_Q), MLKEM_Q);
+    const sDotU = dotMod(sk.s, ct.u, MLKEM_Q);
+    const phase = mod(ct.v - sDotU, MLKEM_Q);
     const recoveredSecret = decodeMlKemBit(phase);
+    
+    const distTo0 = wrappedDistance(phase, 0, MLKEM_Q);
+    const distToHalf = wrappedDistance(phase, MLKEM_HALF_Q, MLKEM_Q);
 
     return {
         recoveredSecret,
         match: recoveredSecret === ct._sharedSecret,
+        intermediates: { sDotU, phase, distTo0, distToHalf }
     };
 }
 
@@ -154,21 +180,31 @@ function mlDsaKeyGen() {
 }
 
 function tryMlDsaSignature(A, t, s1, y, message) {
+    const attempts = [];
     for (let c = 0; c < 5; c += 1) {
         const z = addVectors(y, scaleVector(s1, c));
+        const norm = infinityNorm(z);
+        const w = matMulMod(A, y, MLKEM_Q); // For demonstration, we use y to get w
+        const hashVal = simpleHash({ w, message }) % 5;
+        
+        const attemptData = { y: y.slice(), w, c: hashVal, z, norm, rejected: true };
 
-        if (infinityNorm(z) > 6) {
+        if (norm > 6) {
+            attempts.push(attemptData);
             continue;
         }
 
-        const wPrime = subVectorsMod(matMulMod(A, z, MLKEM_Q), scaleVector(t, c), MLKEM_Q);
+        const wPrime = subVectorsMod(matMulMod(A, z, MLKEM_Q), scaleVector(t, hashVal), MLKEM_Q);
 
-        if ((simpleHash({ w: wPrime, message }) % 5) === c) {
-            return { z, c };
+        if (hashVal === c) {
+            attemptData.rejected = false;
+            attempts.push(attemptData);
+            return { sig: { z, c: hashVal }, attempts };
         }
+        attempts.push(attemptData);
     }
 
-    return null;
+    return { sig: null, attempts };
 }
 
 function exhaustiveMlDsaSignature(A, t, s1, message) {
@@ -202,22 +238,21 @@ function exhaustiveMlDsaSignature(A, t, s1, message) {
 function mlDsaSign(sk, message) {
     const A = sk._A;
     const t = sk._t;
-    let attempts = 0;
+    let allAttempts = [];
 
     for (let sample = 0; sample < 10; sample += 1) {
         const y = randomVector(4, -8, 8);
-        const candidate = tryMlDsaSignature(A, t, sk.s1, y, message);
+        const result = tryMlDsaSignature(A, t, sk.s1, y, message);
+        allAttempts = allAttempts.concat(result.attempts);
 
-        if (candidate) {
-            return { sig: candidate, attempts };
+        if (result.sig) {
+            return { sig: result.sig, attempts: allAttempts.length, intermediates: { attempts: allAttempts } };
         }
-
-        attempts += 1;
     }
 
     // 如果 10 次随机尝试都被拒绝，则退化为小范围穷举，保证课堂演示可验证。
     const fallback = exhaustiveMlDsaSignature(A, t, sk.s1, message);
-    return { sig: fallback, attempts };
+    return { sig: fallback, attempts: allAttempts.length, intermediates: { attempts: allAttempts } };
 }
 
 function mlDsaVerify(pk, message, sig) {
@@ -354,6 +389,7 @@ function hqcEncaps(pk) {
     return {
         ct,
         sharedSecret: message.slice(),
+        intermediates: { originalCodeword: codeword, errorPosition }
     };
 }
 
@@ -362,9 +398,10 @@ function hqcDecaps(sk, ct) {
     const corrected = ct.noisyCodeword.slice();
     let correctedBit = null;
     const syndromeKey = syndrome.join('');
+    let errorIndex = -1;
 
     if (syndromeKey !== '000' && syndromeKey in HAMMING_LOOKUP) {
-        const errorIndex = HAMMING_LOOKUP[syndromeKey];
+        errorIndex = HAMMING_LOOKUP[syndromeKey];
         corrected[errorIndex] ^= 1;
         correctedBit = errorIndex + 1;
     }
@@ -376,6 +413,7 @@ function hqcDecaps(sk, ct) {
         recoveredSecret,
         correctedBit,
         match: recoveredSecret.length === expected.length && recoveredSecret.every((bit, index) => bit === expected[index]),
+        intermediates: { syndrome, syndromeKey, errorIndex }
     };
 }
 

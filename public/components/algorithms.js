@@ -178,6 +178,34 @@ export function renderAlgorithms(container) {
                 }
                 .io-label { color: var(--text-dim); font-size: 0.8rem; margin-right: 0.5rem; }
                 .io-value { color: var(--active-color); word-break: break-all; }
+                .io-step-label { color: #fff; font-weight: bold; margin-bottom: 0.5rem; display: block; background: rgba(255,255,255,0.05); padding: 0.25rem 0.5rem; border-radius: 4px; }
+                .io-input-source { font-size: 0.75rem; color: #fbbf24; margin-bottom: 0.5rem; display: block; }
+
+                /* Toy Disclaimer */
+                .toy-disclaimer {
+                    margin-bottom: 1rem;
+                    border: 1px solid rgba(251, 191, 36, 0.3);
+                    border-radius: 0.5rem;
+                    overflow: hidden;
+                    font-size: 0.85rem;
+                }
+                .toy-disclaimer-header {
+                    background: rgba(251, 191, 36, 0.1);
+                    padding: 0.5rem 1rem;
+                    cursor: pointer;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    color: #fbbf24;
+                    font-weight: bold;
+                }
+                .toy-disclaimer-content {
+                    padding: 1rem;
+                    background: rgba(0, 0, 0, 0.2);
+                    color: var(--text-dim);
+                    display: none;
+                }
+                .toy-disclaimer.open .toy-disclaimer-content { display: block; }
 
                 /* Complexity Table */
                 .complexity-section {
@@ -190,20 +218,21 @@ export function renderAlgorithms(container) {
                     width: 100%;
                     border-collapse: collapse;
                     margin-top: 1rem;
+                    font-size: 0.85rem;
                 }
                 .complexity-table th, .complexity-table td {
                     padding: 0.75rem;
                     text-align: left;
                     border-bottom: 1px solid var(--glass-border);
                 }
-                .complexity-table th { color: var(--text-dim); font-size: 0.85rem; }
+                .complexity-table th { color: var(--text-dim); }
+                .complexity-table tr.classic { background: rgba(255,255,255,0.03); }
                 .bottleneck { 
                     padding: 0.2rem 0.5rem; 
                     border-radius: 4px; 
                     font-size: 0.75rem; 
-                    background: rgba(239, 68, 68, 0.2); 
-                    color: #f87171; 
                 }
+                .toy-mapping { font-size: 0.7rem; color: var(--text-dim); font-style: italic; display: block; margin-top: 2px; }
 
                 .comparison-chart {
                     background: var(--glass-bg);
@@ -286,25 +315,67 @@ export function renderAlgorithms(container) {
                 </div>
 
                 <div class="complexity-section card-corners">
-                    <h4 style="margin-top: 0">计算复杂度对比</h4>
+                    <h4 style="margin-top: 0">计算复杂度对比（代表性参数集）</h4>
                     <table class="complexity-table">
                         <thead>
                             <tr>
-                                <th>算法</th><th>KeyGen</th><th>Encaps/Sign</th><th>Decaps/Verify</th><th>主要瓶颈</th>
+                                <th>算法</th><th>参数</th><th>KeyGen</th><th>Encaps/Sign</th><th>Decaps/Verify</th><th>瓶颈</th><th>Toy 对应</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>ML-KEM</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td><span class="bottleneck" style="background: rgba(34, 211, 238, 0.2); color: #22d3ee">NTT 变换</span></td>
+                                <td>ML-KEM-768</td>
+                                <td>n=256,k=3,q=3329</td>
+                                <td>O(k²·n log n)</td>
+                                <td>O(12次多项式乘)</td>
+                                <td>O(3次相位恢复)</td>
+                                <td><span class="bottleneck" style="background: rgba(34, 211, 238, 0.2); color: #22d3ee">NTT 变换</span></td>
+                                <td><span class="toy-mapping">b = As + e</span></td>
                             </tr>
                             <tr>
-                                <td>ML-DSA</td><td>O(n log n)</td><td>O(n log n) × 重试</td><td>O(n log n)</td><td><span class="bottleneck">拒绝采样</span></td>
+                                <td>ML-DSA-65</td>
+                                <td>n=256,l=5,k=6,q=8.3M</td>
+                                <td>O(k·l·n log n)</td>
+                                <td>O(30次) × 重试</td>
+                                <td>O(30次)</td>
+                                <td><span class="bottleneck" style="background: rgba(239, 68, 68, 0.2); color: #f87171">拒绝采样</span></td>
+                                <td><span class="toy-mapping">z = y + c·s1</span></td>
                             </tr>
                             <tr>
-                                <td>SLH-DSA</td><td>O(n)</td><td>O(n·h)</td><td>O(n·h)</td><td><span class="bottleneck" style="background: rgba(167, 139, 250, 0.2); color: #a78bfa">哈希调用量</span></td>
+                                <td>SLH-DSA-128f</td>
+                                <td>n=16B,h=66,d=22</td>
+                                <td>O(d·2^(h/d)·n)</td>
+                                <td>O(33棵FORS+22层)</td>
+                                <td>O(重建+22层)</td>
+                                <td><span class="bottleneck" style="background: rgba(167, 139, 250, 0.2); color: #a78bfa">哈希调用量</span></td>
+                                <td><span class="toy-mapping">authPath</span></td>
                             </tr>
                             <tr>
-                                <td>HQC</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td><span class="bottleneck" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24">解码复杂度</span></td>
+                                <td>HQC-128</td>
+                                <td>n=17669,w=66</td>
+                                <td>O(n·w) 稀疏多项式</td>
+                                <td>O(n·wr + 编码)</td>
+                                <td>O(n·wr + 解码)</td>
+                                <td><span class="bottleneck" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24">长二元多项式</span></td>
+                                <td><span class="toy-mapping">H · ctᵀ</span></td>
+                            </tr>
+                            <tr class="classic">
+                                <td style="color: var(--text-dim)">RSA-2048</td>
+                                <td>2048-bit</td>
+                                <td>O(n⁴) 素数生成</td>
+                                <td>O(n³) 模幂</td>
+                                <td>O(n²) 小指数</td>
+                                <td><span class="bottleneck" style="background: rgba(255,255,255,0.1); color: #ccc">大整数模幂</span></td>
+                                <td><span class="toy-mapping">无 Toy</span></td>
+                            </tr>
+                            <tr class="classic">
+                                <td style="color: var(--text-dim)">ECDSA-P256</td>
+                                <td>2^256</td>
+                                <td>O(1) 标量乘</td>
+                                <td>O(1) 标量乘+模逆</td>
+                                <td>O(1) 2次标量乘</td>
+                                <td><span class="bottleneck" style="background: rgba(255,255,255,0.1); color: #ccc">曲线标量乘</span></td>
+                                <td><span class="toy-mapping">无 Toy</span></td>
                             </tr>
                         </tbody>
                     </table>
@@ -345,9 +416,27 @@ export function renderAlgorithms(container) {
         const algoName = algorithms.find(a => a.id === id).name;
         const steps = id === 'ml-dsa' || id === 'slh-dsa' ? ['keygen', 'sign', 'verify'] : ['keygen', 'encaps', 'decaps'];
         
+        const toyDisclaimers = {
+            'ml-kem': '这是用于课堂直觉的 Toy 流程：把真实 ML-KEM 里的 256 阶多项式向量、NTT、压缩和 FO 一致性检查，压缩成 4 维整数向量与 1 bit 教学消息演示。',
+            'ml-dsa': 'Toy 声明：简化了 ML-DSA 的拒绝采样逻辑和多项式维度，仅展示基于格的签名与拒绝采样的直观逻辑。',
+            'slh-dsa': 'Toy 声明：将 SLH-DSA 的多层树结构简化为单层 Merkle Tree，展示基于哈希的签名与认证路径原理。',
+            'hqc': 'Toy 声明：简化了 HQC 的码字长度和纠错过程，使用 Hamming 编码展示基于纠错码的加密逻辑。'
+        };
+
         return `
             <div class="demo-panel">
                 <h4 style="margin-top:0;">🧪 交互演示：${algoName} 完整流程</h4>
+                
+                <div class="toy-disclaimer" id="toy-disclaimer">
+                    <div class="toy-disclaimer-header">
+                        <span>⚠️ Toy 声明 (点击展开)</span>
+                        <span>▼</span>
+                    </div>
+                    <div class="toy-disclaimer-content">
+                        ${toyDisclaimers[id]}
+                    </div>
+                </div>
+
                 <div class="demo-steps">
                     ${steps.map((s, idx) => `
                         <button class="demo-step-btn ${state.step === s ? 'active' : ''}" data-step="${s}">
@@ -364,6 +453,12 @@ export function renderAlgorithms(container) {
         `;
     }
 
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     function renderStepOutput(id) {
         const state = demoStates[id];
         if (!state.pk && state.step !== 'keygen') return `<div style="color: var(--text-dim)">请先执行 KeyGen 步骤</div>`;
@@ -372,63 +467,72 @@ export function renderAlgorithms(container) {
             case 'ml-kem':
                 if (state.step === 'keygen') {
                     if (!state.pk) return '点击"生成密钥"开始...';
-                    return `<span class="io-label">输入:</span> 随机种子, 误差分布\n<span class="io-label">输出:</span>\n  pk = (A, b) = (${JSON.stringify(state.pk.A)}, ${JSON.stringify(state.pk.b)})\n  sk = s = ${JSON.stringify(state.sk.s)}`;
+                    const im = state.intermediates;
+                    let calc = state.pk.b.map((v, i) => `  A[${i}]·s = ${im.dotProducts[i]} → mod 23 = ${im.dotProducts[i]%23} → + e[${i}] = ${state.pk.b[i]}`).join('\n');
+                    return `<span class="io-input-source">📥 输入：无（从随机源采样）</span><span class="io-step-label">KeyGen 过程</span>A = ${JSON.stringify(state.pk.A)}\ns = ${JSON.stringify(state.sk.s)}\ne = [误差向量]\n\n计算 b = A·s + e mod 23:\n${calc}\n\n<span class="io-label">📤 输出:</span> pk = (A, b=${JSON.stringify(state.pk.b)}) → 传给 Encaps\n<span class="io-label">📤 输出:</span> sk = s = ${JSON.stringify(state.sk.s)} → 传给 Decaps`;
                 }
                 if (state.step === 'encaps') {
                     if (!state.ct) return '点击"执行加密"开始...';
-                    return `<span class="io-label">输入:</span> pk = (A, b)\n<span class="io-label">输出:</span>\n  ct = (u, v) = (${JSON.stringify(state.ct.u)}, ${state.ct.v})\n  共享秘密 m = <span class="io-value">${state.sharedSecret}</span>`;
+                    const im = state.intermediates;
+                    return `<span class="io-input-source">📥 输入：pk 来自上一步 KeyGen</span><span class="io-step-label">Encaps 过程</span>采样 r=${JSON.stringify(im.r)}, e1=[...], e2=${im.e2}, 消息 m=${im.m}\n\n计算 u = Aᵀ·r + e1 mod 23:\n  Aᵀ·r = ${JSON.stringify(im.uBeforeNoise)}\n  u = ${JSON.stringify(state.ct.u)}\n计算 v = bᵀ·r + e2 + ⌊23/2⌋×m mod 23:\n  bᵀ·r = ${im.bDotR}\n  v = ${im.bDotR} + ${im.e2} + 11×${im.m} = ${state.ct.v}\n\n<span class="io-label">📤 输出:</span> ct = (u=${JSON.stringify(state.ct.u)}, v=${state.ct.v}) → 传给 Decaps\n<span class="io-label">📤 共享秘密</span> m = ${im.m} (教学随机bit)`;
                 }
                 if (state.step === 'decaps') {
                     if (!state.result) return '点击"执行解密"开始...';
-                    return `<span class="io-label">输入:</span> sk = s, ct = (u, v)\n<span class="io-label">输出:</span>\n  恢复的秘密 = <span class="io-value">${state.result.recoveredSecret}</span>\n  验证结果 = ${state.result.match ? '✅ 匹配成功' : '❌ 失败'}`;
+                    const im = state.intermediates;
+                    return `<span class="io-input-source">📥 输入：sk=s 来自 KeyGen，ct=(u,v) 来自 Encaps</span><span class="io-step-label">Decaps 过程</span>计算 sᵀ·u mod 23:\n  sᵀ·u = ${im.sDotU}\n计算 phase = v - sᵀ·u mod 23:\n  phase = ${state.ct.v} - ${im.sDotU} = ${im.phase}\n\n判断：phase=${im.phase} 更接近 0 还是 11？\n  距离 0: ${im.distTo0}, 距离 11: ${im.distToHalf}\n  → 恢复 m = ${state.result.recoveredSecret}\n\n<span class="io-label">📤 结果:</span> 恢复秘密 = ${state.result.recoveredSecret}, 与 Encaps 的 m = ${state.sharedSecret} → ${state.result.match ? '✅ 匹配成功' : '❌ 失败'}`;
                 }
                 break;
 
             case 'ml-dsa':
                 if (state.step === 'keygen') {
                     if (!state.pk) return '点击"生成密钥"开始...';
-                    return `<span class="io-label">输入:</span> 随机性\n<span class="io-label">输出:</span>\n  pk = (A, t) = (${JSON.stringify(state.pk.A)}, ${JSON.stringify(state.pk.t)})\n  sk = (s1, s2) = (${JSON.stringify(state.sk.s1)}, ${JSON.stringify(state.sk.s2)})`;
+                    return `<span class="io-input-source">📥 输入：无（从随机源采样）</span><span class="io-step-label">KeyGen 过程</span>A = ${JSON.stringify(state.pk.A)}\ns1 = ${JSON.stringify(state.sk.s1)}, s2 = ${JSON.stringify(state.sk.s2)}\n\n计算 t = A·s1 + s2 mod 23\n<span class="io-label">📤 输出:</span> pk = (A, t=${JSON.stringify(state.pk.t)}) → 传给 Sign\n<span class="io-label">📤 输出:</span> sk = (s1, s2)`;
                 }
                 if (state.step === 'sign') {
-                    if (!state.sig) return `消息: <input type="text" id="ml-dsa-msg" value="${state.message}" style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: #fff; padding: 2px 5px; border-radius: 3px;">\n点击"执行签名"开始...`;
-                    let log = '';
-                    for(let i=1; i<=state.attempts; i++) log += `尝试 #${i}...范数过大！拒绝采样。\n`;
-                    log += `尝试 #${state.attempts + 1}...通过！\n`;
-                    return `<span class="io-label">输入:</span> sk, 消息="${state.message}"\n<span class="io-label">过程:</span>\n${log}\n<span class="io-label">输出:</span>\n  签名 (z, c) = (${JSON.stringify(state.sig.z)}, ${state.sig.c})`;
+                    if (!state.sig) return `消息: <input type="text" id="ml-dsa-msg" value="${escapeHtml(state.message)}" style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: #fff; padding: 2px 5px; border-radius: 3px;">\n点击"执行签名"开始...`;
+                    const im = state.intermediates;
+                    let log = im.attempts.map((a, i) => {
+                        if (a.rejected) return `尝试 #${i+1}：采样 y=${JSON.stringify(a.y)} → ||z||∞ = ${a.norm.toFixed(1)} > 6 → ❌ 拒绝！`;
+                        return `尝试 #${i+1}：采样 y=${JSON.stringify(a.y)} → ||z||∞ = ${a.norm.toFixed(1)} ≤ 6 → ✅ 通过！`;
+                    }).join('\n');
+                    return `<span class="io-input-source">📥 输入：sk=(s1,s2) 来自 KeyGen，消息 = "${escapeHtml(state.message)}"</span><span class="io-step-label">Sign 过程 (拒绝采样)</span>${log}\n\n<span class="io-label">📤 签名:</span> (z=${JSON.stringify(state.sig.z)}, c=${state.sig.c}) → 传给 Verify`;
                 }
                 if (state.step === 'verify') {
                     if (!state.result) return '点击"执行验证"开始...';
-                    return `<span class="io-label">输入:</span> pk, 消息, 签名\n<span class="io-label">输出:</span>\n  验证结果 = ${state.result.valid ? '<span class="io-value">✅ 有效签名</span>' : '❌ 无效'}`;
+                    return `<span class="io-input-source">📥 输入：pk 来自 KeyGen, 消息, 签名来自 Sign</span><span class="io-step-label">Verify 过程</span>计算 w' = Az - tc mod 23\n计算 c' = H(w', message) mod 5 = ${state.sig.c}\n\n<span class="io-label">📤 验证结果:</span> ${state.result.valid ? '<span class="io-value">✅ 有效签名</span>' : '❌ 无效'}`;
                 }
                 break;
 
             case 'slh-dsa':
                 if (state.step === 'keygen') {
                     if (!state.pk) return '点击"生成密钥"开始...';
-                    return `<span class="io-label">过程:</span> 构建高度为 3 的 Merkle Tree (8个叶子)\n<span class="io-label">叶子值:</span> ${state.treeStructure.leaves.map(l => l.value).join(', ')}\n<span class="io-label">输出:</span>\n  pk = Root Hash = <span class="io-value">${state.pk.root}</span>`;
+                    return `<span class="io-input-source">📥 输入：随机种子</span><span class="io-step-label">KeyGen 过程</span>构建 Merkle Tree (8个叶子)\n叶子值: ${state.treeStructure.leaves.map(l => l.value).join(', ')}\n哈希传播至根节点...\n\n<span class="io-label">📤 输出:</span> pk = Root Hash = <span class="io-value">${state.pk.root}</span>`;
                 }
                 if (state.step === 'sign') {
                     if (!state.sig) return `选择叶子索引: <select id="slh-dsa-idx" style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: #fff; border-radius: 3px;">${[0,1,2,3,4,5,6,7].map(i => `<option value="${i}">${i}</option>`).join('')}</select>\n点击"执行签名"开始...`;
-                    return `<span class="io-label">输入:</span> sk, 索引=${state.leafIndex}\n<span class="io-label">过程:</span> 提取认证路径 (Authentication Path)\n<span class="io-label">输出:</span>\n  签名 = { 值: ${state.sig.leaf}, 路径: ${state.sig.authPath.length}个节点 }\n  签名大小 ≈ <span class="io-value">${state.sigSize} Bytes</span> (vs 公钥 4 Bytes)`;
+                    let pathLog = state.sig.authPath.map((p, i) => `  层 #${i}: 兄弟节点 ${p.position} = ${p.siblingHash}`).join('\n');
+                    return `<span class="io-input-source">📥 输入：树结构来自 KeyGen，选中叶子 #${state.leafIndex}</span><span class="io-step-label">Sign 过程 (认证路径构建)</span>叶子 #${state.leafIndex} 值 = ${state.sig.leaf}\n认证路径构建:\n${pathLog}\n\n<span class="io-label">📤 签名:</span> { leaf:${state.sig.leaf}, authPath:[...] }\n<span class="io-label">签名大小:</span> ≈ ${state.sigSize} Bytes (vs 公钥 4 Bytes)`;
                 }
                 if (state.step === 'verify') {
                     if (!state.result) return '点击"执行验证"开始...';
-                    return `<span class="io-label">输入:</span> pk, 签名\n<span class="io-label">过程:</span> 从叶子值和认证路径重建根哈希...\n<span class="io-label">计算出的根:</span> ${state.result.computedRoot}\n<span class="io-label">验证结果:</span> ${state.result.valid ? '<span class="io-value">✅ 与公钥匹配</span>' : '❌ 不匹配'}`;
+                    return `<span class="io-input-source">📥 输入：pk=RootHash 来自 KeyGen，签名来自 Sign</span><span class="io-step-label">Verify 过程 (路径重构)</span>从叶子值开始逐层合并哈希...\n计算出的根: ${state.result.computedRoot}\n\n<span class="io-label">验证结果:</span> ${state.result.valid ? '<span class="io-value">✅ 与公钥根哈希匹配</span>' : '❌ 不匹配'}`;
                 }
                 break;
 
             case 'hqc':
                 if (state.step === 'keygen') {
                     if (!state.pk) return '点击"生成密钥"开始...';
-                    return `<span class="io-label">过程:</span> 选择随机向量 s, 计算 pk = sG + e\n<span class="io-label">输出:</span>\n  pk = (G, publicVec) = (Hamming G, ${JSON.stringify(state.pk.publicVec)})\n  sk = secretVec = ${JSON.stringify(state.sk.secretVec)}`;
+                    return `<span class="io-input-source">📥 输入：生成矩阵 G</span><span class="io-step-label">KeyGen 过程</span>采样秘密向量 s = ${JSON.stringify(state.sk.secretVec)}\n计算 pk = sG = ${JSON.stringify(state.pk.publicVec)}\n\n<span class="io-label">📤 输出:</span> pk = (G, publicVec)\n<span class="io-label">📤 输出:</span> sk = s`;
                 }
                 if (state.step === 'encaps') {
                     if (!state.ct) return '点击"执行封装"开始...';
-                    return `<span class="io-label">过程:</span>\n  1. 原始消息: ${JSON.stringify(state.sharedSecret)}\n  2. Hamming 编码: ${JSON.stringify(state.ct.noisyCodeword.map((v,i)=>v ^ (i===state.errorIdx?1:0)))}\n  3. 注入噪声 (1 bit)\n<span class="io-label">输出:</span>\n  ct = noisyCodeword = <span class="io-value">${JSON.stringify(state.ct.noisyCodeword)}</span>`;
+                    const im = state.intermediates;
+                    return `<span class="io-input-source">📥 输入：G 来自 KeyGen</span><span class="io-step-label">Encaps 过程 (编码与加噪)</span>采样消息 m = ${JSON.stringify(state.sharedSecret)}\n\nHamming 编码: codeword = ${JSON.stringify(im.originalCodeword)}\n注入噪声: 翻转第 ${im.errorPosition + 1} 位\n\n<span class="io-label">📤 密文:</span> ct = ${JSON.stringify(state.ct.noisyCodeword)} → 传给 Decaps\n<span class="io-label">📤 共享秘密:</span> ${JSON.stringify(state.sharedSecret)}`;
                 }
                 if (state.step === 'decaps') {
                     if (!state.result) return '点击"执行解封"开始...';
-                    return `<span class="io-label">过程:</span>\n  1. 计算伴随式 (Syndrome): H·ctᵀ\n  2. 定位错误位: ${state.result.correctedBit ? `第 ${state.result.correctedBit} 位` : '未发现错误'}\n  3. 纠错并解码\n<span class="io-label">输出:</span>\n  恢复的消息 = <span class="io-value">${JSON.stringify(state.result.recoveredSecret)}</span>\n  验证结果 = ${state.result.match ? '✅ 匹配成功' : '❌ 失败'}`;
+                    const im = state.intermediates;
+                    return `<span class="io-input-source">📥 输入：sk=s 来自 KeyGen，ct=密文 来自 Encaps</span><span class="io-step-label">Decaps 过程 (纠错解码)</span>计算伴随式 (Syndrome): H·ctᵀ = [${im.syndrome.join(',')}]\n${im.errorIndex !== -1 ? `定位错误：查表发现错误在第 ${im.errorIndex + 1} 位\n执行纠错：翻转该位` : '未发现错误位'}\n\n<span class="io-label">📤 恢复秘密:</span> ${JSON.stringify(state.result.recoveredSecret)}\n<span class="io-label">验证结果:</span> ${state.result.match ? '✅ 匹配成功' : '❌ 失败'}`;
                 }
                 break;
         }
@@ -442,6 +546,16 @@ export function renderAlgorithms(container) {
                 update();
             });
         });
+
+        // Toy Disclaimer Toggle
+        const disclaimer = container.querySelector('#toy-disclaimer');
+        if (disclaimer) {
+            disclaimer.addEventListener('click', () => {
+                disclaimer.classList.toggle('open');
+                const arrow = disclaimer.querySelector('.toy-disclaimer-header span:last-child');
+                arrow.textContent = disclaimer.classList.contains('open') ? '▲' : '▼';
+            });
+        }
 
         // Demo step switching
         container.querySelectorAll('.demo-step-btn').forEach(btn => {
@@ -473,8 +587,8 @@ export function renderAlgorithms(container) {
                 const state = demoStates[activeAlgoId];
                 if (state.step === 'keygen') {
                     if (activeAlgoId === 'ml-kem') {
-                        const { pk, sk } = toyMLKEM.keyGen();
-                        state.pk = pk; state.sk = sk;
+                        const { pk, sk, intermediates } = toyMLKEM.keyGen();
+                        state.pk = pk; state.sk = sk; state.intermediates = intermediates;
                     } else if (activeAlgoId === 'ml-dsa') {
                         const { pk, sk } = toyMLDSA.keyGen();
                         state.pk = pk; state.sk = sk;
@@ -487,33 +601,29 @@ export function renderAlgorithms(container) {
                     }
                 } else if (state.step === 'encaps' || state.step === 'sign') {
                     if (activeAlgoId === 'ml-kem') {
-                        const { ct, sharedSecret } = toyMLKEM.encaps(state.pk);
-                        state.ct = ct; state.sharedSecret = sharedSecret;
+                        const { ct, sharedSecret, intermediates } = toyMLKEM.encaps(state.pk);
+                        state.ct = ct; state.sharedSecret = sharedSecret; state.intermediates = intermediates;
                     } else if (activeAlgoId === 'ml-dsa') {
-                        const { sig, attempts } = toyMLDSA.sign(state.sk, state.message);
-                        state.sig = sig; state.attempts = attempts;
+                        const { sig, attempts, intermediates } = toyMLDSA.sign(state.sk, state.message);
+                        state.sig = sig; state.attempts = attempts; state.intermediates = intermediates;
                     } else if (activeAlgoId === 'slh-dsa') {
                         const { sig, sigSize } = toySLHDSA.sign(state.sk, state.leafIndex);
                         state.sig = sig; state.sigSize = sigSize;
                     } else if (activeAlgoId === 'hqc') {
-                        const { ct, sharedSecret } = toyHQC.encaps(state.pk);
-                        state.ct = ct; state.sharedSecret = sharedSecret;
-                        // Find error idx for display
-                        const codeword = state.sharedSecret.reduce((acc, bit, i) => {
-                            const row = state.pk.G[i];
-                            return acc.map((v, j) => (v + bit * row[j]) % 2);
-                        }, [0,0,0,0,0,0,0]);
-                        state.errorIdx = state.ct.noisyCodeword.findIndex((v, i) => v !== codeword[i]);
+                        const { ct, sharedSecret, intermediates } = toyHQC.encaps(state.pk);
+                        state.ct = ct; state.sharedSecret = sharedSecret; state.intermediates = intermediates;
                     }
                 } else if (state.step === 'decaps' || state.step === 'verify') {
                     if (activeAlgoId === 'ml-kem') {
-                        state.result = toyMLKEM.decaps(state.sk, state.ct);
+                        const { recoveredSecret, match, intermediates } = toyMLKEM.decaps(state.sk, state.ct);
+                        state.result = { recoveredSecret, match }; state.intermediates = intermediates;
                     } else if (activeAlgoId === 'ml-dsa') {
                         state.result = toyMLDSA.verify(state.pk, state.message, state.sig);
                     } else if (activeAlgoId === 'slh-dsa') {
                         state.result = toySLHDSA.verify(state.pk, state.sig);
                     } else if (activeAlgoId === 'hqc') {
-                        state.result = toyHQC.decaps(state.sk, state.ct);
+                        const { recoveredSecret, correctedBit, match, intermediates } = toyHQC.decaps(state.sk, state.ct);
+                        state.result = { recoveredSecret, correctedBit, match }; state.intermediates = intermediates;
                     }
                 }
                 update();
