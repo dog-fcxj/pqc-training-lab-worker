@@ -1,21 +1,19 @@
 import { algorithms, keySizeComparison } from '../data.js';
+import { toyMLKEM, toyMLDSA, toySLHDSA, toyHQC } from './crypto-demos.js';
 
 export function renderAlgorithms(container) {
     let activeAlgoId = algorithms[0].id;
-    let animationVersion = 0;
-    let isPlaying = false;
     
-    // 初始 Toy 数据副本，用于随机化逻辑
-    let currentToy = null;
-    const mlKem = algorithms.find(a => a.id === 'ml-kem');
-    if (mlKem && mlKem.toyExample) {
-        currentToy = JSON.parse(JSON.stringify(mlKem.toyExample));
-    }
+    // 演示状态存储
+    const demoStates = {
+        'ml-kem': { step: 'keygen', pk: null, sk: null, ct: null, sharedSecret: null, result: null },
+        'ml-dsa': { step: 'keygen', pk: null, sk: null, sig: null, message: 'hello', result: null, attempts: 0 },
+        'slh-dsa': { step: 'keygen', pk: null, sk: null, sig: null, leafIndex: 0, result: null, treeStructure: null },
+        'hqc': { step: 'keygen', pk: null, sk: null, ct: null, sharedSecret: null, result: null }
+    };
 
     function update() {
         const algo = algorithms.find(a => a.id === activeAlgoId);
-        animationVersion++; // 切换 tab 或更新时增加版本号，中断旧动画
-        isPlaying = false;
         
         container.innerHTML = `
             <style>
@@ -113,46 +111,99 @@ export function renderAlgorithms(container) {
                 .step-label { font-weight: bold; display: block; margin-bottom: 0.25rem; }
                 .step-detail { font-size: 0.85rem; color: var(--text-dim); }
 
-                .toy-playground {
+                /* Demo Panel Styles */
+                .demo-panel {
                     grid-column: span 2;
-                    background: rgba(16, 185, 129, 0.05);
-                    border: 1px dashed var(--accent-cyan);
+                    background: rgba(var(--active-rgb, 16, 185, 129), 0.05);
+                    border: 1px dashed var(--active-color);
                     border-radius: 1rem;
                     padding: 2rem;
                     margin-top: 1rem;
                 }
-                .toy-grid {
-                    display: grid;
-                    grid-template-columns: auto auto auto auto auto;
-                    align-items: center;
-                    gap: 1.5rem;
-                    font-family: 'JetBrains Mono', monospace;
+                .demo-steps {
+                    display: flex;
+                    gap: 1rem;
+                    margin-bottom: 1.5rem;
                 }
-                .matrix-box {
-                    background: rgba(0,0,0,0.3);
-                    padding: 1rem;
-                    border-radius: 4px;
+                .demo-step-btn {
+                    flex: 1;
+                    padding: 0.75rem;
+                    background: rgba(255,255,255,0.05);
                     border: 1px solid var(--glass-border);
-                }
-                .matrix-row { display: flex; gap: 0.5rem; margin-bottom: 0.25rem; transition: background 0.3s; }
-                .matrix-cell { width: 30px; text-align: center; }
-                .matrix-cell.highlight { color: var(--accent-cyan); font-weight: bold; }
-                .matrix-row.active { background: rgba(34, 211, 238, 0.2); border-radius: 2px; }
-                .matrix-row.done { opacity: 0.5; }
-                
-                .log-panel {
-                    margin-top: 1.5rem;
-                    background: rgba(0,0,0,0.4);
                     border-radius: 0.5rem;
-                    padding: 1rem;
-                    font-family: 'JetBrains Mono', monospace;
-                    font-size: 0.85rem;
                     color: var(--text-dim);
-                    min-height: 120px;
-                    border: 1px solid var(--glass-border);
+                    cursor: pointer;
+                    font-weight: 600;
+                    transition: all 0.3s;
                 }
-                .log-line { margin-bottom: 0.4rem; border-left: 2px solid var(--accent-cyan); padding-left: 0.75rem; animation: fadeIn 0.3s ease-out; }
-                @keyframes fadeIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
+                .demo-step-btn.active {
+                    background: var(--active-color);
+                    color: black;
+                    border-color: var(--active-color);
+                }
+                .demo-output {
+                    background: rgba(0,0,0,0.3);
+                    border-radius: 0.5rem;
+                    padding: 1.5rem;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.9rem;
+                    min-height: 150px;
+                    line-height: 1.5;
+                    border: 1px solid var(--glass-border);
+                    white-space: pre-wrap;
+                }
+                .demo-actions {
+                    margin-top: 1.5rem;
+                    display: flex;
+                    gap: 1rem;
+                }
+                .btn-next {
+                    background: var(--active-color);
+                    color: black;
+                    border: none;
+                    padding: 0.75rem 2rem;
+                    border-radius: 0.5rem;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: opacity 0.3s;
+                }
+                .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+                .btn-reset {
+                    background: transparent;
+                    color: var(--text-dim);
+                    border: 1px solid var(--glass-border);
+                    padding: 0.75rem 1.5rem;
+                    border-radius: 0.5rem;
+                    cursor: pointer;
+                }
+                .io-label { color: var(--text-dim); font-size: 0.8rem; margin-right: 0.5rem; }
+                .io-value { color: var(--active-color); word-break: break-all; }
+
+                /* Complexity Table */
+                .complexity-section {
+                    background: var(--glass-bg);
+                    padding: 1.5rem;
+                    border-radius: 1rem;
+                    margin-top: 2rem;
+                }
+                .complexity-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 1rem;
+                }
+                .complexity-table th, .complexity-table td {
+                    padding: 0.75rem;
+                    text-align: left;
+                    border-bottom: 1px solid var(--glass-border);
+                }
+                .complexity-table th { color: var(--text-dim); font-size: 0.85rem; }
+                .bottleneck { 
+                    padding: 0.2rem 0.5rem; 
+                    border-radius: 4px; 
+                    font-size: 0.75rem; 
+                    background: rgba(239, 68, 68, 0.2); 
+                    color: #f87171; 
+                }
 
                 .comparison-chart {
                     background: var(--glass-bg);
@@ -173,11 +224,11 @@ export function renderAlgorithms(container) {
 
                 @media (max-width: 900px) {
                     .detail-panel { grid-template-columns: 1fr; }
-                    .toy-playground { grid-column: span 1; }
+                    .demo-panel { grid-column: span 1; }
                 }
             </style>
             
-            <div class="algo-lab" style="--active-color: ${algo.color}">
+            <div class="algo-lab" style="--active-color: ${algo.color}; --active-rgb: ${hexToRgb(algo.color)}">
                 <div class="tabs">
                     ${algorithms.map(a => `
                         <div class="tab ${a.id === activeAlgoId ? 'active' : ''}" data-id="${a.id}">
@@ -215,7 +266,7 @@ export function renderAlgorithms(container) {
 
                         <div class="interfaces">
                             <h4 style="margin: 1rem 0 0.5rem 0">接口签名</h4>
-                            ${algo.interfaces.map(i => `<div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--accent-cyan); margin-bottom: 0.25rem;">${i}</div>`).join('')}
+                            ${algo.interfaces.map(i => `<div style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--active-color); margin-bottom: 0.25rem;">${i}</div>`).join('')}
                         </div>
                     </div>
 
@@ -231,20 +282,45 @@ export function renderAlgorithms(container) {
                         `).join('')}
                     </div>
 
-                    ${activeAlgoId === 'ml-kem' && currentToy ? renderToyPlayground(currentToy) : ''}
+                    ${renderDemoPanel(activeAlgoId)}
+                </div>
+
+                <div class="complexity-section card-corners">
+                    <h4 style="margin-top: 0">计算复杂度对比</h4>
+                    <table class="complexity-table">
+                        <thead>
+                            <tr>
+                                <th>算法</th><th>KeyGen</th><th>Encaps/Sign</th><th>Decaps/Verify</th><th>主要瓶颈</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>ML-KEM</td><td>O(n log n)</td><td>O(n log n)</td><td>O(n log n)</td><td><span class="bottleneck" style="background: rgba(34, 211, 238, 0.2); color: #22d3ee">NTT 变换</span></td>
+                            </tr>
+                            <tr>
+                                <td>ML-DSA</td><td>O(n log n)</td><td>O(n log n) × 重试</td><td>O(n log n)</td><td><span class="bottleneck">拒绝采样</span></td>
+                            </tr>
+                            <tr>
+                                <td>SLH-DSA</td><td>O(n)</td><td>O(n·h)</td><td>O(n·h)</td><td><span class="bottleneck" style="background: rgba(167, 139, 250, 0.2); color: #a78bfa">哈希调用量</span></td>
+                            </tr>
+                            <tr>
+                                <td>HQC</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td><span class="bottleneck" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24">解码复杂度</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <div class="comparison-chart card-corners">
                     <h4 style="margin-top: 0">密钥与载荷大小对比 (Bytes)</h4>
                     ${keySizeComparison.map(c => {
                         const val = c.pk + (c.ct || c.sig || 0);
-                        const max = 18000; // Adjust max for SLH-DSA visibility
+                        const max = 18000;
                         const width = Math.min((val / max) * 100, 100);
                         return `
                             <div class="chart-row">
                                 <div class="chart-label">${c.algorithm}</div>
                                 <div class="chart-bar-container">
-                                    <div class="chart-bar" style="width: ${width}%; background: ${c.type === 'pqc' ? 'var(--accent-cyan)' : 'var(--text-dim)'}"></div>
+                                    <div class="chart-bar" style="width: ${width}%; background: ${c.type === 'pqc' ? 'var(--active-color)' : 'var(--text-dim)'}"></div>
                                 </div>
                                 <div class="chart-value">${val}B</div>
                             </div>
@@ -257,47 +333,106 @@ export function renderAlgorithms(container) {
         setupListeners();
     }
 
-    function renderToyPlayground(toy) {
-        return `
-            <div class="toy-playground">
-                <h4 style="margin-top:0; color: var(--accent-cyan)">Toy LWE 游乐场: b = A·s + e mod ${toy.q}</h4>
-                <p style="font-size: 0.85rem; margin-bottom: 1.5rem">${toy.description}</p>
-                <div class="toy-grid">
-                    <div class="matrix-box">
-                        <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem">矩阵 A</div>
-                        ${toy.A.map((row, r) => `
-                            <div class="matrix-row toy-a-row" data-row="${r}">
-                                ${row.map(cell => `<div class="matrix-cell">${cell}</div>`).join('')}
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="font-size: 1.5rem">×</div>
-                    <div class="matrix-box">
-                        <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem">向量 s</div>
-                        ${toy.s.map((cell, i) => `<div class="matrix-row toy-s-cell" data-index="${i}"><div class="matrix-cell">${cell}</div></div>`).join('')}
-                    </div>
-                    <div style="font-size: 1.5rem">+</div>
-                    <div class="matrix-box">
-                        <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem">误差 e</div>
-                        ${toy.e.map((cell, i) => `<div class="matrix-row toy-e-cell" data-index="${i}"><div class="matrix-cell">${cell}</div></div>`).join('')}
-                    </div>
-                    <div style="font-size: 1.5rem">=</div>
-                    <div class="matrix-box">
-                        <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem">结果 b</div>
-                        ${toy.b.map((cell, i) => `<div class="matrix-row toy-b-cell" data-index="${i}"><div class="matrix-cell result-cell">${cell}</div></div>`).join('')}
-                    </div>
-                </div>
-                
-                <div id="toy-log" class="log-panel">
-                    <div style="color: var(--text-dim); opacity: 0.5 italic">点击"开始计算"观察 LWE 构造过程...</div>
-                </div>
+    function hexToRgb(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `${r}, ${g}, ${b}`;
+    }
 
-                <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem">
-                    <button id="toy-calc-btn" class="code-btn" style="background: var(--accent-cyan); color: black; font-weight: bold; padding: 8px 20px;">开始计算</button>
-                    <button id="toy-random-btn" class="code-btn" style="border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 8px 20px;">随机化</button>
+    function renderDemoPanel(id) {
+        const state = demoStates[id];
+        const algoName = algorithms.find(a => a.id === id).name;
+        const steps = id === 'ml-dsa' || id === 'slh-dsa' ? ['keygen', 'sign', 'verify'] : ['keygen', 'encaps', 'decaps'];
+        
+        return `
+            <div class="demo-panel">
+                <h4 style="margin-top:0;">🧪 交互演示：${algoName} 完整流程</h4>
+                <div class="demo-steps">
+                    ${steps.map((s, idx) => `
+                        <button class="demo-step-btn ${state.step === s ? 'active' : ''}" data-step="${s}">
+                            ${idx + 1}. ${s.charAt(0).toUpperCase() + s.slice(1)}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="demo-output" id="demo-output">${renderStepOutput(id)}</div>
+                <div class="demo-actions">
+                    <button class="btn-next" id="demo-run">${state.step === 'keygen' ? '生成密钥' : (state.step === 'encaps' || state.step === 'sign' ? '执行加密/签名' : '执行解密/验证')}</button>
+                    <button class="btn-reset" id="demo-reset">重置</button>
                 </div>
             </div>
         `;
+    }
+
+    function renderStepOutput(id) {
+        const state = demoStates[id];
+        if (!state.pk && state.step !== 'keygen') return `<div style="color: var(--text-dim)">请先执行 KeyGen 步骤</div>`;
+
+        switch(id) {
+            case 'ml-kem':
+                if (state.step === 'keygen') {
+                    if (!state.pk) return '点击"生成密钥"开始...';
+                    return `<span class="io-label">输入:</span> 随机种子, 误差分布\n<span class="io-label">输出:</span>\n  pk = (A, b) = (${JSON.stringify(state.pk.A)}, ${JSON.stringify(state.pk.b)})\n  sk = s = ${JSON.stringify(state.sk.s)}`;
+                }
+                if (state.step === 'encaps') {
+                    if (!state.ct) return '点击"执行加密"开始...';
+                    return `<span class="io-label">输入:</span> pk = (A, b)\n<span class="io-label">输出:</span>\n  ct = (u, v) = (${JSON.stringify(state.ct.u)}, ${state.ct.v})\n  共享秘密 m = <span class="io-value">${state.sharedSecret}</span>`;
+                }
+                if (state.step === 'decaps') {
+                    if (!state.result) return '点击"执行解密"开始...';
+                    return `<span class="io-label">输入:</span> sk = s, ct = (u, v)\n<span class="io-label">输出:</span>\n  恢复的秘密 = <span class="io-value">${state.result.recoveredSecret}</span>\n  验证结果 = ${state.result.match ? '✅ 匹配成功' : '❌ 失败'}`;
+                }
+                break;
+
+            case 'ml-dsa':
+                if (state.step === 'keygen') {
+                    if (!state.pk) return '点击"生成密钥"开始...';
+                    return `<span class="io-label">输入:</span> 随机性\n<span class="io-label">输出:</span>\n  pk = (A, t) = (${JSON.stringify(state.pk.A)}, ${JSON.stringify(state.pk.t)})\n  sk = (s1, s2) = (${JSON.stringify(state.sk.s1)}, ${JSON.stringify(state.sk.s2)})`;
+                }
+                if (state.step === 'sign') {
+                    if (!state.sig) return `消息: <input type="text" id="ml-dsa-msg" value="${state.message}" style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: #fff; padding: 2px 5px; border-radius: 3px;">\n点击"执行签名"开始...`;
+                    let log = '';
+                    for(let i=1; i<=state.attempts; i++) log += `尝试 #${i}...范数过大！拒绝采样。\n`;
+                    log += `尝试 #${state.attempts + 1}...通过！\n`;
+                    return `<span class="io-label">输入:</span> sk, 消息="${state.message}"\n<span class="io-label">过程:</span>\n${log}\n<span class="io-label">输出:</span>\n  签名 (z, c) = (${JSON.stringify(state.sig.z)}, ${state.sig.c})`;
+                }
+                if (state.step === 'verify') {
+                    if (!state.result) return '点击"执行验证"开始...';
+                    return `<span class="io-label">输入:</span> pk, 消息, 签名\n<span class="io-label">输出:</span>\n  验证结果 = ${state.result.valid ? '<span class="io-value">✅ 有效签名</span>' : '❌ 无效'}`;
+                }
+                break;
+
+            case 'slh-dsa':
+                if (state.step === 'keygen') {
+                    if (!state.pk) return '点击"生成密钥"开始...';
+                    return `<span class="io-label">过程:</span> 构建高度为 3 的 Merkle Tree (8个叶子)\n<span class="io-label">叶子值:</span> ${state.treeStructure.leaves.map(l => l.value).join(', ')}\n<span class="io-label">输出:</span>\n  pk = Root Hash = <span class="io-value">${state.pk.root}</span>`;
+                }
+                if (state.step === 'sign') {
+                    if (!state.sig) return `选择叶子索引: <select id="slh-dsa-idx" style="background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: #fff; border-radius: 3px;">${[0,1,2,3,4,5,6,7].map(i => `<option value="${i}">${i}</option>`).join('')}</select>\n点击"执行签名"开始...`;
+                    return `<span class="io-label">输入:</span> sk, 索引=${state.leafIndex}\n<span class="io-label">过程:</span> 提取认证路径 (Authentication Path)\n<span class="io-label">输出:</span>\n  签名 = { 值: ${state.sig.leaf}, 路径: ${state.sig.authPath.length}个节点 }\n  签名大小 ≈ <span class="io-value">${state.sigSize} Bytes</span> (vs 公钥 4 Bytes)`;
+                }
+                if (state.step === 'verify') {
+                    if (!state.result) return '点击"执行验证"开始...';
+                    return `<span class="io-label">输入:</span> pk, 签名\n<span class="io-label">过程:</span> 从叶子值和认证路径重建根哈希...\n<span class="io-label">计算出的根:</span> ${state.result.computedRoot}\n<span class="io-label">验证结果:</span> ${state.result.valid ? '<span class="io-value">✅ 与公钥匹配</span>' : '❌ 不匹配'}`;
+                }
+                break;
+
+            case 'hqc':
+                if (state.step === 'keygen') {
+                    if (!state.pk) return '点击"生成密钥"开始...';
+                    return `<span class="io-label">过程:</span> 选择随机向量 s, 计算 pk = sG + e\n<span class="io-label">输出:</span>\n  pk = (G, publicVec) = (Hamming G, ${JSON.stringify(state.pk.publicVec)})\n  sk = secretVec = ${JSON.stringify(state.sk.secretVec)}`;
+                }
+                if (state.step === 'encaps') {
+                    if (!state.ct) return '点击"执行封装"开始...';
+                    return `<span class="io-label">过程:</span>\n  1. 原始消息: ${JSON.stringify(state.sharedSecret)}\n  2. Hamming 编码: ${JSON.stringify(state.ct.noisyCodeword.map((v,i)=>v ^ (i===state.errorIdx?1:0)))}\n  3. 注入噪声 (1 bit)\n<span class="io-label">输出:</span>\n  ct = noisyCodeword = <span class="io-value">${JSON.stringify(state.ct.noisyCodeword)}</span>`;
+                }
+                if (state.step === 'decaps') {
+                    if (!state.result) return '点击"执行解封"开始...';
+                    return `<span class="io-label">过程:</span>\n  1. 计算伴随式 (Syndrome): H·ctᵀ\n  2. 定位错误位: ${state.result.correctedBit ? `第 ${state.result.correctedBit} 位` : '未发现错误'}\n  3. 纠错并解码\n<span class="io-label">输出:</span>\n  恢复的消息 = <span class="io-value">${JSON.stringify(state.result.recoveredSecret)}</span>\n  验证结果 = ${state.result.match ? '✅ 匹配成功' : '❌ 失败'}`;
+                }
+                break;
+        }
+        return '';
     }
 
     function setupListeners() {
@@ -308,95 +443,90 @@ export function renderAlgorithms(container) {
             });
         });
 
-        const calcBtn = container.querySelector('#toy-calc-btn');
-        const randomBtn = container.querySelector('#toy-random-btn');
-        const logPanel = container.querySelector('#toy-log');
-        
-        if (calcBtn && currentToy) {
-            calcBtn.addEventListener('click', async () => {
-                if (isPlaying) return;
-                
-                isPlaying = true;
-                calcBtn.disabled = true;
-                calcBtn.style.opacity = '0.5';
-                const currentVersion = animationVersion;
+        // Demo step switching
+        container.querySelectorAll('.demo-step-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                demoStates[activeAlgoId].step = btn.dataset.step;
+                update();
+            });
+        });
 
-                logPanel.innerHTML = '';
-                
-                // 重置样式
-                container.querySelectorAll('.matrix-row').forEach(r => r.classList.remove('active', 'done'));
-                container.querySelectorAll('.matrix-cell').forEach(c => c.classList.remove('highlight'));
-
-                for (let i = 0; i < 4; i++) {
-                    if (currentVersion !== animationVersion) return;
-
-                    // 高亮当前行和向量
-                    const aRow = container.querySelector(`.toy-a-row[data-row="${i}"]`);
-                    const sCells = container.querySelectorAll('.toy-s-cell');
-                    const eCell = container.querySelector(`.toy-e-cell[data-index="${i}"]`);
-                    const bCell = container.querySelector(`.toy-b-cell[data-index="${i}"]`);
-
-                    aRow.classList.add('active');
-                    sCells.forEach(s => s.classList.add('active'));
-                    eCell.classList.add('active');
-                    
-                    const rowData = currentToy.A[i];
-                    const sData = currentToy.s;
-                    const eVal = currentToy.e[i];
-                    const prod = rowData.reduce((acc, val, idx) => acc + val * sData[idx], 0);
-                    const bVal = currentToy.b[i];
-
-                    const logLine = document.createElement('div');
-                    logLine.className = 'log-line';
-                    logLine.innerHTML = `A[${i}]·s = ${rowData.map((v,idx)=>`${v}×${sData[idx]}`).join(' + ')} = ${prod} → ${prod} mod ${currentToy.q} = ${prod % currentToy.q} → +e[${i}](${eVal}) → b[${i}] = ${bVal}`;
-                    logPanel.appendChild(logLine);
-                    logPanel.scrollTop = logPanel.scrollHeight;
-
-                    await new Promise(r => setTimeout(r, 800));
-                    if (currentVersion !== animationVersion) return;
-
-                    aRow.classList.remove('active');
-                    aRow.classList.add('done');
-                    sCells.forEach(s => s.classList.remove('active'));
-                    eCell.classList.remove('active');
-                    eCell.classList.add('done');
-                    bCell.querySelector('.result-cell').classList.add('highlight');
-                }
-
-                if (currentVersion === animationVersion) {
-                    const finalLine = document.createElement('div');
-                    finalLine.className = 'log-line';
-                    finalLine.style.borderColor = 'var(--active-color)';
-                    finalLine.style.marginTop = '0.5rem';
-                    finalLine.innerHTML = `<strong>计算完成:</strong> b = [${currentToy.b.join(', ')}]，最终公钥 pk = (A, b)`;
-                    logPanel.appendChild(finalLine);
-                    
-                    isPlaying = false;
-                    calcBtn.disabled = false;
-                    calcBtn.style.opacity = '1';
-                    calcBtn.innerText = '重新播放';
-                }
+        // ML-DSA message input
+        const dsaMsgInput = container.querySelector('#ml-dsa-msg');
+        if (dsaMsgInput) {
+            dsaMsgInput.addEventListener('input', (e) => {
+                demoStates['ml-dsa'].message = e.target.value;
             });
         }
 
-        if (randomBtn) {
-            randomBtn.addEventListener('click', () => {
-                animationVersion++; // 中断正在播放的动画
-                isPlaying = false;
-                
-                // 随机化 s (0-4) 和 e (-2 到 2)
-                currentToy.s = currentToy.s.map(() => Math.floor(Math.random() * 5));
-                currentToy.e = currentToy.e.map(() => Math.floor(Math.random() * 5) - 2);
-                
-                // 重算 b
-                currentToy.b = currentToy.A.map((row, i) => {
-                    const prod = row.reduce((acc, val, idx) => acc + val * currentToy.s[idx], 0);
-                    let res = (prod + currentToy.e[i]) % currentToy.q;
-                    if (res < 0) res += currentToy.q;
-                    return res;
-                });
+        // SLH-DSA index select
+        const slhIdxSelect = container.querySelector('#slh-dsa-idx');
+        if (slhIdxSelect) {
+            slhIdxSelect.addEventListener('change', (e) => {
+                demoStates['slh-dsa'].leafIndex = parseInt(e.target.value);
+            });
+        }
 
-                // 更新界面
+        const runBtn = container.querySelector('#demo-run');
+        if (runBtn) {
+            runBtn.addEventListener('click', () => {
+                const state = demoStates[activeAlgoId];
+                if (state.step === 'keygen') {
+                    if (activeAlgoId === 'ml-kem') {
+                        const { pk, sk } = toyMLKEM.keyGen();
+                        state.pk = pk; state.sk = sk;
+                    } else if (activeAlgoId === 'ml-dsa') {
+                        const { pk, sk } = toyMLDSA.keyGen();
+                        state.pk = pk; state.sk = sk;
+                    } else if (activeAlgoId === 'slh-dsa') {
+                        const { pk, sk, treeStructure } = toySLHDSA.keyGen();
+                        state.pk = pk; state.sk = sk; state.treeStructure = treeStructure;
+                    } else if (activeAlgoId === 'hqc') {
+                        const { pk, sk } = toyHQC.keyGen();
+                        state.pk = pk; state.sk = sk;
+                    }
+                } else if (state.step === 'encaps' || state.step === 'sign') {
+                    if (activeAlgoId === 'ml-kem') {
+                        const { ct, sharedSecret } = toyMLKEM.encaps(state.pk);
+                        state.ct = ct; state.sharedSecret = sharedSecret;
+                    } else if (activeAlgoId === 'ml-dsa') {
+                        const { sig, attempts } = toyMLDSA.sign(state.sk, state.message);
+                        state.sig = sig; state.attempts = attempts;
+                    } else if (activeAlgoId === 'slh-dsa') {
+                        const { sig, sigSize } = toySLHDSA.sign(state.sk, state.leafIndex);
+                        state.sig = sig; state.sigSize = sigSize;
+                    } else if (activeAlgoId === 'hqc') {
+                        const { ct, sharedSecret } = toyHQC.encaps(state.pk);
+                        state.ct = ct; state.sharedSecret = sharedSecret;
+                        // Find error idx for display
+                        const codeword = state.sharedSecret.reduce((acc, bit, i) => {
+                            const row = state.pk.G[i];
+                            return acc.map((v, j) => (v + bit * row[j]) % 2);
+                        }, [0,0,0,0,0,0,0]);
+                        state.errorIdx = state.ct.noisyCodeword.findIndex((v, i) => v !== codeword[i]);
+                    }
+                } else if (state.step === 'decaps' || state.step === 'verify') {
+                    if (activeAlgoId === 'ml-kem') {
+                        state.result = toyMLKEM.decaps(state.sk, state.ct);
+                    } else if (activeAlgoId === 'ml-dsa') {
+                        state.result = toyMLDSA.verify(state.pk, state.message, state.sig);
+                    } else if (activeAlgoId === 'slh-dsa') {
+                        state.result = toySLHDSA.verify(state.pk, state.sig);
+                    } else if (activeAlgoId === 'hqc') {
+                        state.result = toyHQC.decaps(state.sk, state.ct);
+                    }
+                }
+                update();
+            });
+        }
+
+        const resetBtn = container.querySelector('#demo-reset');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                demoStates[activeAlgoId] = { 
+                    step: 'keygen', pk: null, sk: null, ct: null, sig: null, 
+                    message: 'hello', leafIndex: 0, result: null, sharedSecret: null 
+                };
                 update();
             });
         }
@@ -404,4 +534,3 @@ export function renderAlgorithms(container) {
 
     update();
 }
-
