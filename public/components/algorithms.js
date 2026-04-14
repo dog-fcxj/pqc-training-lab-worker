@@ -2,9 +2,20 @@ import { algorithms, keySizeComparison } from '../data.js';
 
 export function renderAlgorithms(container) {
     let activeAlgoId = algorithms[0].id;
+    let animationVersion = 0;
+    let isPlaying = false;
+    
+    // 初始 Toy 数据副本，用于随机化逻辑
+    let currentToy = null;
+    const mlKem = algorithms.find(a => a.id === 'ml-kem');
+    if (mlKem && mlKem.toyExample) {
+        currentToy = JSON.parse(JSON.stringify(mlKem.toyExample));
+    }
 
     function update() {
         const algo = algorithms.find(a => a.id === activeAlgoId);
+        animationVersion++; // 切换 tab 或更新时增加版本号，中断旧动画
+        isPlaying = false;
         
         container.innerHTML = `
             <style>
@@ -36,8 +47,9 @@ export function renderAlgorithms(container) {
                 }
                 .detail-panel {
                     display: grid;
-                    grid-template-columns: 1fr 1fr;
+                    grid-template-columns: minmax(0, 1fr) minmax(340px, 0.95fr);
                     gap: 2rem;
+                    align-items: start;
                 }
                 .info-section {
                     display: flex;
@@ -61,12 +73,12 @@ export function renderAlgorithms(container) {
                     flex-direction: column;
                     gap: 1rem;
                     position: relative;
-                    padding-left: 2rem;
+                    padding-left: 3.25rem;
                 }
                 .path-steps::before {
                     content: '';
                     position: absolute;
-                    left: 9px;
+                    left: 0.75rem;
                     top: 10px;
                     bottom: 10px;
                     width: 2px;
@@ -74,25 +86,29 @@ export function renderAlgorithms(container) {
                 }
                 .step-item {
                     position: relative;
+                    min-width: 0;
                 }
                 .step-circle {
                     position: absolute;
-                    left: -2rem;
-                    width: 20px;
-                    height: 20px;
+                    left: 0;
+                    top: 1rem;
+                    width: 24px;
+                    height: 24px;
                     background: var(--active-color);
                     border-radius: 50%;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 10px;
+                    font-size: 12px;
                     font-weight: bold;
                     z-index: 1;
+                    transform: translateX(-50%);
                 }
                 .step-content {
                     background: rgba(255,255,255,0.03);
-                    padding: 1rem;
+                    padding: 1rem 1rem 1rem 1.25rem;
                     border-radius: 0.5rem;
+                    margin-left: 0.75rem;
                 }
                 .step-label { font-weight: bold; display: block; margin-bottom: 0.25rem; }
                 .step-detail { font-size: 0.85rem; color: var(--text-dim); }
@@ -118,10 +134,26 @@ export function renderAlgorithms(container) {
                     border-radius: 4px;
                     border: 1px solid var(--glass-border);
                 }
-                .matrix-row { display: flex; gap: 0.5rem; margin-bottom: 0.25rem; }
+                .matrix-row { display: flex; gap: 0.5rem; margin-bottom: 0.25rem; transition: background 0.3s; }
                 .matrix-cell { width: 30px; text-align: center; }
-                .matrix-cell.highlight { color: var(--accent-cyan); font-weight: bold; background: rgba(34, 211, 238, 0.2); }
+                .matrix-cell.highlight { color: var(--accent-cyan); font-weight: bold; }
+                .matrix-row.active { background: rgba(34, 211, 238, 0.2); border-radius: 2px; }
+                .matrix-row.done { opacity: 0.5; }
                 
+                .log-panel {
+                    margin-top: 1.5rem;
+                    background: rgba(0,0,0,0.4);
+                    border-radius: 0.5rem;
+                    padding: 1rem;
+                    font-family: 'JetBrains Mono', monospace;
+                    font-size: 0.85rem;
+                    color: var(--text-dim);
+                    min-height: 120px;
+                    border: 1px solid var(--glass-border);
+                }
+                .log-line { margin-bottom: 0.4rem; border-left: 2px solid var(--accent-cyan); padding-left: 0.75rem; animation: fadeIn 0.3s ease-out; }
+                @keyframes fadeIn { from { opacity: 0; transform: translateX(-5px); } to { opacity: 1; transform: translateX(0); } }
+
                 .comparison-chart {
                     background: var(--glass-bg);
                     padding: 1.5rem;
@@ -138,6 +170,11 @@ export function renderAlgorithms(container) {
                 .chart-bar-container { flex: 1; height: 12px; background: rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden; }
                 .chart-bar { height: 100%; transition: width 1s ease-out; }
                 .chart-value { width: 60px; font-size: 0.75rem; color: var(--text-dim); text-align: right; }
+
+                @media (max-width: 900px) {
+                    .detail-panel { grid-template-columns: 1fr; }
+                    .toy-playground { grid-column: span 1; }
+                }
             </style>
             
             <div class="algo-lab" style="--active-color: ${algo.color}">
@@ -194,7 +231,7 @@ export function renderAlgorithms(container) {
                         `).join('')}
                     </div>
 
-                    ${activeAlgoId === 'ml-kem' ? renderToyPlayground(algo.toyExample) : ''}
+                    ${activeAlgoId === 'ml-kem' && currentToy ? renderToyPlayground(currentToy) : ''}
                 </div>
 
                 <div class="comparison-chart card-corners">
@@ -229,7 +266,7 @@ export function renderAlgorithms(container) {
                     <div class="matrix-box">
                         <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem">矩阵 A</div>
                         ${toy.A.map((row, r) => `
-                            <div class="matrix-row" data-row="${r}">
+                            <div class="matrix-row toy-a-row" data-row="${r}">
                                 ${row.map(cell => `<div class="matrix-cell">${cell}</div>`).join('')}
                             </div>
                         `).join('')}
@@ -237,22 +274,27 @@ export function renderAlgorithms(container) {
                     <div style="font-size: 1.5rem">×</div>
                     <div class="matrix-box">
                         <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem">向量 s</div>
-                        ${toy.s.map(cell => `<div class="matrix-row"><div class="matrix-cell">${cell}</div></div>`).join('')}
+                        ${toy.s.map((cell, i) => `<div class="matrix-row toy-s-cell" data-index="${i}"><div class="matrix-cell">${cell}</div></div>`).join('')}
                     </div>
                     <div style="font-size: 1.5rem">+</div>
                     <div class="matrix-box">
                         <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem">误差 e</div>
-                        ${toy.e.map(cell => `<div class="matrix-row"><div class="matrix-cell">${cell}</div></div>`).join('')}
+                        ${toy.e.map((cell, i) => `<div class="matrix-row toy-e-cell" data-index="${i}"><div class="matrix-cell">${cell}</div></div>`).join('')}
                     </div>
                     <div style="font-size: 1.5rem">=</div>
                     <div class="matrix-box">
                         <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 0.5rem">结果 b</div>
-                        ${toy.b.map(cell => `<div class="matrix-row"><div class="matrix-cell result-cell">${cell}</div></div>`).join('')}
+                        ${toy.b.map((cell, i) => `<div class="matrix-row toy-b-cell" data-index="${i}"><div class="matrix-cell result-cell">${cell}</div></div>`).join('')}
                     </div>
                 </div>
+                
+                <div id="toy-log" class="log-panel">
+                    <div style="color: var(--text-dim); opacity: 0.5 italic">点击"开始计算"观察 LWE 构造过程...</div>
+                </div>
+
                 <div style="margin-top: 1.5rem; display: flex; align-items: center; gap: 1rem">
-                    <button id="toy-calc-btn" class="code-btn" style="background: var(--accent-cyan); color: black; font-weight: bold; padding: 8px 20px;">分步计算</button>
-                    <span id="toy-step-msg" style="font-size: 0.85rem; color: var(--accent-cyan)"></span>
+                    <button id="toy-calc-btn" class="code-btn" style="background: var(--accent-cyan); color: black; font-weight: bold; padding: 8px 20px;">开始计算</button>
+                    <button id="toy-random-btn" class="code-btn" style="border: 1px solid var(--accent-cyan); color: var(--accent-cyan); padding: 8px 20px;">随机化</button>
                 </div>
             </div>
         `;
@@ -267,30 +309,99 @@ export function renderAlgorithms(container) {
         });
 
         const calcBtn = container.querySelector('#toy-calc-btn');
-        if (calcBtn) {
-            let step = -1;
-            const rows = container.querySelectorAll('.matrix-row[data-row]');
-            const resultCells = container.querySelectorAll('.result-cell');
-            const msg = container.querySelector('#toy-step-msg');
-            
-            calcBtn.addEventListener('click', () => {
-                step = (step + 1) % 4;
-                rows.forEach(r => r.querySelectorAll('.matrix-cell').forEach(c => c.classList.remove('highlight')));
-                resultCells.forEach(c => c.classList.remove('highlight'));
+        const randomBtn = container.querySelector('#toy-random-btn');
+        const logPanel = container.querySelector('#toy-log');
+        
+        if (calcBtn && currentToy) {
+            calcBtn.addEventListener('click', async () => {
+                if (isPlaying) return;
                 
-                const activeRow = container.querySelector(`.matrix-row[data-row="${step}"]`);
-                activeRow.querySelectorAll('.matrix-cell').forEach(c => c.classList.add('highlight'));
-                resultCells[step].classList.add('highlight');
+                isPlaying = true;
+                calcBtn.disabled = true;
+                calcBtn.style.opacity = '0.5';
+                const currentVersion = animationVersion;
+
+                logPanel.innerHTML = '';
                 
-                const rowData = algorithms.find(a => a.id === 'ml-kem').toyExample.A[step];
-                const sData = algorithms.find(a => a.id === 'ml-kem').toyExample.s;
-                const eVal = algorithms.find(a => a.id === 'ml-kem').toyExample.e[step];
-                const res = algorithms.find(a => a.id === 'ml-kem').toyExample.b[step];
+                // 重置样式
+                container.querySelectorAll('.matrix-row').forEach(r => r.classList.remove('active', 'done'));
+                container.querySelectorAll('.matrix-cell').forEach(c => c.classList.remove('highlight'));
+
+                for (let i = 0; i < 4; i++) {
+                    if (currentVersion !== animationVersion) return;
+
+                    // 高亮当前行和向量
+                    const aRow = container.querySelector(`.toy-a-row[data-row="${i}"]`);
+                    const sCells = container.querySelectorAll('.toy-s-cell');
+                    const eCell = container.querySelector(`.toy-e-cell[data-index="${i}"]`);
+                    const bCell = container.querySelector(`.toy-b-cell[data-index="${i}"]`);
+
+                    aRow.classList.add('active');
+                    sCells.forEach(s => s.classList.add('active'));
+                    eCell.classList.add('active');
+                    
+                    const rowData = currentToy.A[i];
+                    const sData = currentToy.s;
+                    const eVal = currentToy.e[i];
+                    const prod = rowData.reduce((acc, val, idx) => acc + val * sData[idx], 0);
+                    const bVal = currentToy.b[i];
+
+                    const logLine = document.createElement('div');
+                    logLine.className = 'log-line';
+                    logLine.innerHTML = `A[${i}]·s = ${rowData.map((v,idx)=>`${v}×${sData[idx]}`).join(' + ')} = ${prod} → ${prod} mod ${currentToy.q} = ${prod % currentToy.q} → +e[${i}](${eVal}) → b[${i}] = ${bVal}`;
+                    logPanel.appendChild(logLine);
+                    logPanel.scrollTop = logPanel.scrollHeight;
+
+                    await new Promise(r => setTimeout(r, 800));
+                    if (currentVersion !== animationVersion) return;
+
+                    aRow.classList.remove('active');
+                    aRow.classList.add('done');
+                    sCells.forEach(s => s.classList.remove('active'));
+                    eCell.classList.remove('active');
+                    eCell.classList.add('done');
+                    bCell.querySelector('.result-cell').classList.add('highlight');
+                }
+
+                if (currentVersion === animationVersion) {
+                    const finalLine = document.createElement('div');
+                    finalLine.className = 'log-line';
+                    finalLine.style.borderColor = 'var(--active-color)';
+                    finalLine.style.marginTop = '0.5rem';
+                    finalLine.innerHTML = `<strong>计算完成:</strong> b = [${currentToy.b.join(', ')}]，最终公钥 pk = (A, b)`;
+                    logPanel.appendChild(finalLine);
+                    
+                    isPlaying = false;
+                    calcBtn.disabled = false;
+                    calcBtn.style.opacity = '1';
+                    calcBtn.innerText = '重新播放';
+                }
+            });
+        }
+
+        if (randomBtn) {
+            randomBtn.addEventListener('click', () => {
+                animationVersion++; // 中断正在播放的动画
+                isPlaying = false;
                 
-                msg.innerText = `第 ${step+1} 行: (${rowData.join('×')}) · (${sData.join('×')}) + (${eVal}) ≡ ${res} (mod 23)`;
+                // 随机化 s (0-4) 和 e (-2 到 2)
+                currentToy.s = currentToy.s.map(() => Math.floor(Math.random() * 5));
+                currentToy.e = currentToy.e.map(() => Math.floor(Math.random() * 5) - 2);
+                
+                // 重算 b
+                currentToy.b = currentToy.A.map((row, i) => {
+                    const prod = row.reduce((acc, val, idx) => acc + val * currentToy.s[idx], 0);
+                    let res = (prod + currentToy.e[i]) % currentToy.q;
+                    if (res < 0) res += currentToy.q;
+                    return res;
+                });
+
+                // 更新界面
+                update();
             });
         }
     }
 
     update();
 }
+

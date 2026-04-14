@@ -194,9 +194,24 @@ export const scenarios = [
     clientExtra: 0, serverExtra: 0, largestObject: 32, latencyImpact: "0%",
     status: "当前默认", ietfDraft: null,
     steps: [
-      { from: "Client", to: "Server", label: "ClientHello + X25519 share (32B)" },
-      { from: "Server", to: "Client", label: "ServerHello + X25519 share (32B)" },
-      { from: "Client", to: "Server", label: "Finished + application traffic keys" },
+      { 
+        from: "Client", to: "Server", 
+        label: "ClientHello + X25519 share (32B)",
+        diagramNote: "发起套件协商并送出经典临时公钥，整个握手仍是纯经典密钥交换。",
+        explanation: "客户端发起 TLS 1.3 握手，并送出一个 X25519 临时公钥。这样服务端可以立即参与一次经典 ECDHE 密钥交换，但这一步完全没有引入抗量子成分。"
+      },
+      { 
+        from: "Server", to: "Client", 
+        label: "ServerHello + X25519 share (32B)",
+        diagramNote: "服务端补齐经典 ECDHE，共享秘密建立完成，但对 HNDL 没有防护。",
+        explanation: "服务端返回自己选择的参数和 X25519 临时公钥，双方据此形成经典共享秘密。今天它足够快也足够成熟，但如果流量现在被截获，未来量子计算可能回头破解这一共享秘密。"
+      },
+      { 
+        from: "Client", to: "Server", 
+        label: "Finished + application traffic keys",
+        diagramNote: "进入应用流量前会做完整性校验，但流量密钥仍只依赖经典秘密。",
+        explanation: "双方用经典共享秘密导出握手密钥和应用流量密钥，再通过 Finished 校验握手完整性。问题是：完整会话的保密性依然全部压在经典密钥交换上。"
+      },
     ],
     facts: ["无 PQ 保护", "HNDL 风险暴露"],
     notes: "量子计算机一旦成熟，可回溯解密今天已经截获的经典握手流量。",
@@ -209,10 +224,30 @@ export const scenarios = [
     clientExtra: 1200, serverExtra: 1100, largestObject: 1184, latencyImpact: "~4%",
     status: "Browser / CDN / Gateway", ietfDraft: "draft-ietf-tls-ecdhe-mlkem",
     steps: [
-      { from: "Client", to: "Server", label: "ClientHello + X25519(32B) + ML-KEM-768 pk(1184B)" },
-      { from: "Server", to: "Client", label: "ServerHello + X25519(32B) + ML-KEM-768 ct(1088B)" },
-      { from: "Both", to: "Both", label: "组合 ECDHE 与 ML-KEM 共享秘密，导出握手密钥" },
-      { from: "Client", to: "Server", label: "Finished + 进入受 PQ 保护的会话" },
+      { 
+        from: "Client", to: "Server", 
+        label: "ClientHello + X25519(32B) + ML-KEM-768 pk(1184B)",
+        diagramNote: "同一轮 RTT 同时送出经典 share 和 ML-KEM 公钥，不额外增加一轮握手。",
+        explanation: "客户端在同一个 ClientHello 里同时带上经典 X25519 share 和 ML-KEM-768 公钥。这样做的目的是在不增加往返次数的前提下，同时建立经典和抗量子两条共享秘密来源。"
+      },
+      { 
+        from: "Server", to: "Client", 
+        label: "ServerHello + X25519(32B) + ML-KEM-768 ct(1088B)",
+        diagramNote: "服务端回经典 share 和 ML-KEM 密文，补齐第二条 PQ 共享秘密来源。",
+        explanation: "服务端返回经典 X25519 share，并基于客户端的 ML-KEM 公钥完成一次封装，把密文发回客户端。此时双方已经各自拿到一份经典秘密和一份 PQ 秘密。"
+      },
+      { 
+        from: "Both", to: "Both", 
+        label: "组合 ECDHE 与 ML-KEM 共享秘密，导出握手密钥",
+        diagramNote: "两路秘密一起进 KDF；只要经典或 PQ 仍安全，最终会话密钥就不会整体失守。",
+        explanation: "双方把 ECDHE 与 ML-KEM 两路秘密一起送入密钥派生过程。关键点不是「平均安全」，而是「至少一条路径还安全时，最终会话密钥就仍然安全」。"
+      },
+      { 
+        from: "Client", to: "Server", 
+        label: "Finished + 进入受 PQ 保护的会话",
+        diagramNote: "握手完成后，应用流量由混合秘密保护，付出的只是可控的大小与延迟成本。",
+        explanation: "Finished 验证的是组合后的握手状态，随后应用流量建立在混合密钥之上。代价是多出约客户端 1.2KB、服务端 1.1KB 载荷和约 4% 的握手回归，但能显著缓解 HNDL 风险。"
+      },
     ],
     facts: ["保留经典安全性", "叠加 PQ 保护", "~4% 握手回归"],
     notes: "Cloudflare 观测显示混合握手已广泛部署，额外传输约为客户端 +1.2KB、服务端 +1.1KB。",
@@ -225,10 +260,30 @@ export const scenarios = [
     clientExtra: 1184, serverExtra: 1088, largestObject: 1184, latencyImpact: "Variable",
     status: "Tunnel / Branch / Appliance", ietfDraft: "draft-ietf-ipsecme-ikev2-mlkem",
     steps: [
-      { from: "Initiator", to: "Responder", label: "IKE_SA_INIT + DH/KE + ML-KEM-768 pk(1184B)" },
-      { from: "Responder", to: "Initiator", label: "IKE_SA_INIT response + DH/KE + ML-KEM-768 ct(1088B)" },
-      { from: "Initiator", to: "Responder", label: "IKE_AUTH + 证书 / 策略 / 身份认证" },
-      { from: "Both", to: "Both", label: "安装 CHILD_SA，建立受保护隧道" },
+      { 
+        from: "Initiator", to: "Responder", 
+        label: "IKE_SA_INIT + DH/KE + ML-KEM-768 pk(1184B)",
+        diagramNote: "隧道场景同时保留传统 KE 和 PQ KE，优先保证现网可接入。",
+        explanation: "发起端在 IKE_SA_INIT 中同时带上传统 DH/KE 参数和 ML-KEM 公钥。目的不是立刻替换现网设备，而是在企业隧道里先保留兼容性，再逐步引入 PQ 共享秘密。"
+      },
+      { 
+        from: "Responder", to: "Initiator", 
+        label: "IKE_SA_INIT response + DH/KE + ML-KEM-768 ct(1088B)",
+        diagramNote: "响应端补齐 DH/KE 和 ML-KEM 密文，形成双轨密钥材料。",
+        explanation: "响应端返回自己的传统 DH/KE 信息，并基于 ML-KEM 公钥生成密文。这样 IKEv2 也能和混合 TLS 类似，得到经典与 PQ 两套密钥材料。"
+      },
+      { 
+        from: "Initiator", to: "Responder", 
+        label: "IKE_AUTH + 证书 / 策略 / 身份认证",
+        diagramNote: "真正的企业复杂度主要集中在认证、策略和设备协同，而不只是算法本身。",
+        explanation: "进入 IKE_AUTH 后，还要处理证书、身份、策略和访问控制。企业场景里这一步往往比 Web TLS 复杂得多，因为它牵涉 AAA、设备证书、分支网关、跨厂商互通与运维流程。"
+      },
+      { 
+        from: "Both", to: "Both", 
+        label: "安装 CHILD_SA，建立受保护隧道",
+        diagramNote: "安全收益明确，但是否能稳定落地取决于分片、NAT-T、固件和互通。",
+        explanation: "握手完成后安装 CHILD_SA，隧道正式启用。此时需要重点关注 PMTU、分片、NAT-T、硬件加速和固件兼容，否则额外载荷会从理论问题变成部署事故。"
+      },
     ],
     facts: ["PMTU 分片压力", "网关固件依赖", "需场景化压测"],
     notes: "IKEv2 需要独立评估分片策略、NAT-T、设备固件能力以及跨厂商互通性。",
