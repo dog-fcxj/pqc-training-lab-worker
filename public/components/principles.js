@@ -258,11 +258,11 @@ function setupInteractions(container) {
             display.innerHTML = `101<span class="bit-error">01</span>010110`;
             codeBtn.innerText = '执行纠错';
             state = 'error';
-        } else {
+        } else if (state === 'error') {
             display.innerHTML = `101<span class="bit-fixed">10</span>010110`;
             codeBtn.innerText = '重置';
             state = 'fixed';
-        } else if (state === 'fixed') {
+        } else {
             display.innerHTML = original;
             codeBtn.innerText = '注入错误';
             state = 'normal';
