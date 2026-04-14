@@ -34,6 +34,14 @@ const observer = new IntersectionObserver((entries) => {
 
 document.addEventListener('DOMContentLoaded', () => {
   initDataStreams();
+
+  // Hero 首屏直接渲染，不等 Observer
+  const heroEl = document.getElementById('hero');
+  if (heroEl && !heroEl.dataset.rendered) {
+    renderHero(heroEl);
+    heroEl.dataset.rendered = "true";
+  }
+
   document.querySelectorAll('.section').forEach(sec => observer.observe(sec));
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', (e) => {

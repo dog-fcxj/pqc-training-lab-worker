@@ -56,7 +56,7 @@ export const algorithms = [
       s: [3, 1, 4, 1],
       e: [1, 0, -1, 2],
       b: [9, 17, 3, 12],
-      description: "Toy LWE：b = A·s + e mod 23，用小模数演示"带噪多维线性方程"直觉。",
+      description: "Toy LWE：b = A·s + e mod 23，用小模数演示「带噪多维线性方程」直觉。",
     },
   },
   {
