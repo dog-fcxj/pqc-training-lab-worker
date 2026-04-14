@@ -496,67 +496,62 @@ export function renderAlgorithms(container) {
                 </div>
 
                 <div class="complexity-section card-corners">
-                    <h4 style="margin-top: 0">计算复杂度对比（代表性参数集）</h4>
+                    <h4 style="margin-top: 0">性能与计算成本对比</h4>
+                    <p style="font-size:0.8rem; color:var(--text-dim); margin-bottom:1rem">相对速度用条形直觉表示，越短越快。数据基于 128-bit 安全级别的代表性参数集。</p>
                     <table class="complexity-table">
                         <thead>
                             <tr>
-                                <th>算法</th><th>参数</th><th>KeyGen</th><th>Encaps/Sign</th><th>Decaps/Verify</th><th>瓶颈</th><th>Toy 对应</th>
+                                <th>算法</th><th>类型</th><th>KeyGen</th><th>核心操作</th><th>验证/解封</th><th>主要瓶颈</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>ML-KEM-768</td>
-                                <td>n=256,k=3,q=3329</td>
-                                <td>O(k²·n log n)</td>
-                                <td>O(12次多项式乘)</td>
-                                <td>O(3次相位恢复)</td>
-                                <td><span class="bottleneck" style="background: rgba(34, 211, 238, 0.2); color: #22d3ee">NTT 变换</span></td>
-                                <td><span class="toy-mapping">b = As + e</span></td>
+                                <td style="color:#10b981; font-weight:bold">ML-KEM-768</td>
+                                <td>KEM</td>
+                                <td><div style="background:#10b981; height:8px; width:15%; border-radius:4px" title="极快"></div><span class="toy-mapping">极快 (~9 次多项式乘)</span></td>
+                                <td><div style="background:#10b981; height:8px; width:20%; border-radius:4px"></div><span class="toy-mapping">极快 (封装)</span></td>
+                                <td><div style="background:#10b981; height:8px; width:12%; border-radius:4px"></div><span class="toy-mapping">极快 (解封)</span></td>
+                                <td><span class="bottleneck" style="background:rgba(34,211,238,0.2); color:#22d3ee">NTT 多项式乘法</span><br><span class="toy-mapping">Toy: b = As + e</span></td>
                             </tr>
                             <tr>
-                                <td>ML-DSA-65</td>
-                                <td>n=256,l=5,k=6,q=8.3M</td>
-                                <td>O(k·l·n log n)</td>
-                                <td>O(30次) × 重试</td>
-                                <td>O(30次)</td>
-                                <td><span class="bottleneck" style="background: rgba(239, 68, 68, 0.2); color: #f87171">拒绝采样</span></td>
-                                <td><span class="toy-mapping">z = y + c·s1</span></td>
+                                <td style="color:#a855f7; font-weight:bold">ML-DSA-65</td>
+                                <td>签名</td>
+                                <td><div style="background:#a855f7; height:8px; width:25%; border-radius:4px"></div><span class="toy-mapping">快 (~30 次多项式乘)</span></td>
+                                <td><div style="background:#a855f7; height:8px; width:50%; border-radius:4px"></div><span class="toy-mapping">中等 (签名，含重试)</span></td>
+                                <td><div style="background:#a855f7; height:8px; width:25%; border-radius:4px"></div><span class="toy-mapping">快 (验签)</span></td>
+                                <td><span class="bottleneck" style="background:rgba(239,68,68,0.2); color:#f87171">拒绝采样循环</span><br><span class="toy-mapping">Toy: z = y + c·s1 范数检查</span></td>
                             </tr>
                             <tr>
-                                <td>SLH-DSA-128f</td>
-                                <td>n=16B,h=66,d=22</td>
-                                <td>O(d·2^(h/d)·n)</td>
-                                <td>O(33棵FORS+22层)</td>
-                                <td>O(重建+22层)</td>
-                                <td><span class="bottleneck" style="background: rgba(167, 139, 250, 0.2); color: #a78bfa">哈希调用量</span></td>
-                                <td><span class="toy-mapping">authPath</span></td>
+                                <td style="color:#22d3ee; font-weight:bold">SLH-DSA-128f</td>
+                                <td>签名</td>
+                                <td><div style="background:#22d3ee; height:8px; width:30%; border-radius:4px"></div><span class="toy-mapping">中等</span></td>
+                                <td><div style="background:#22d3ee; height:8px; width:90%; border-radius:4px"></div><span class="toy-mapping">慢 (大量哈希调用)</span></td>
+                                <td><div style="background:#22d3ee; height:8px; width:60%; border-radius:4px"></div><span class="toy-mapping">较慢 (路径重建)</span></td>
+                                <td><span class="bottleneck" style="background:rgba(167,139,250,0.2); color:#a78bfa">海量哈希 + WOTS+ 链</span><br><span class="toy-mapping">Toy: 认证路径遍历</span></td>
                             </tr>
                             <tr>
-                                <td>HQC-128</td>
-                                <td>n=17669,w=66</td>
-                                <td>O(n·w) 稀疏多项式</td>
-                                <td>O(n·wr + 编码)</td>
-                                <td>O(n·wr + 解码)</td>
-                                <td><span class="bottleneck" style="background: rgba(251, 191, 36, 0.2); color: #fbbf24">长二元多项式</span></td>
-                                <td><span class="toy-mapping">H · ctᵀ</span></td>
+                                <td style="color:#3b82f6; font-weight:bold">HQC-128</td>
+                                <td>KEM</td>
+                                <td><div style="background:#3b82f6; height:8px; width:40%; border-radius:4px"></div><span class="toy-mapping">中等</span></td>
+                                <td><div style="background:#3b82f6; height:8px; width:45%; border-radius:4px"></div><span class="toy-mapping">中等 (编码+加噪)</span></td>
+                                <td><div style="background:#3b82f6; height:8px; width:55%; border-radius:4px"></div><span class="toy-mapping">较慢 (纠错解码)</span></td>
+                                <td><span class="bottleneck" style="background:rgba(251,191,36,0.2); color:#fbbf24">长二元多项式运算</span><br><span class="toy-mapping">Toy: H·ct 校验矩阵</span></td>
                             </tr>
                             <tr class="classic">
-                                <td style="color: var(--text-dim)">RSA-2048</td>
-                                <td>2048-bit</td>
-                                <td>O(n⁴) 素数生成</td>
-                                <td>O(n³) 模幂</td>
-                                <td>O(n²) 小指数</td>
-                                <td><span class="bottleneck" style="background: rgba(255,255,255,0.1); color: #ccc">大整数模幂</span></td>
-                                <td><span class="toy-mapping">无 Toy</span></td>
+                                <td style="color:var(--text-dim)">RSA-2048</td>
+                                <td>经典</td>
+                                <td><div style="background:#64748b; height:8px; width:100%; border-radius:4px"></div><span class="toy-mapping">极慢 (素数生成)</span></td>
+                                <td><div style="background:#64748b; height:8px; width:70%; border-radius:4px"></div><span class="toy-mapping">慢 (模幂)</span></td>
+                                <td><div style="background:#64748b; height:8px; width:20%; border-radius:4px"></div><span class="toy-mapping">快 (小指数)</span></td>
+                                <td><span class="bottleneck" style="background:rgba(255,255,255,0.1); color:#ccc">大整数模幂</span></td>
                             </tr>
                             <tr class="classic">
-                                <td style="color: var(--text-dim)">ECDSA-P256</td>
-                                <td>2^256</td>
-                                <td>O(1) 标量乘</td>
-                                <td>O(1) 标量乘+模逆</td>
-                                <td>O(1) 2次标量乘</td>
-                                <td><span class="bottleneck" style="background: rgba(255,255,255,0.1); color: #ccc">曲线标量乘</span></td>
-                                <td><span class="toy-mapping">无 Toy</span></td>
+                                <td style="color:var(--text-dim)">ECDSA-P256</td>
+                                <td>经典</td>
+                                <td><div style="background:#64748b; height:8px; width:10%; border-radius:4px"></div><span class="toy-mapping">极快</span></td>
+                                <td><div style="background:#64748b; height:8px; width:12%; border-radius:4px"></div><span class="toy-mapping">极快</span></td>
+                                <td><div style="background:#64748b; height:8px; width:18%; border-radius:4px"></div><span class="toy-mapping">极快</span></td>
+                                <td><span class="bottleneck" style="background:rgba(255,255,255,0.1); color:#ccc">曲线标量乘</span></td>
                             </tr>
                         </tbody>
                     </table>
