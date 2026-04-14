@@ -14,6 +14,7 @@ export function renderPrinciples(container) {
                 background: var(--glass-bg);
                 border: 1px solid var(--glass-border);
                 border-radius: 1.5rem;
+                overflow: hidden;
                 box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             }
             .principle-visual {
@@ -27,11 +28,11 @@ export function renderPrinciples(container) {
                 position: relative;
                 border-right: 1px solid var(--glass-border);
                 min-height: 450px;
+                box-sizing: border-box;
             }
             .principle-tutorial {
                 flex: 0 0 40%;
                 padding: 1.5rem;
-                padding-right: 2rem;
                 display: flex;
                 flex-direction: column;
                 background: rgba(255, 255, 255, 0.02);
