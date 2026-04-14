@@ -8,8 +8,8 @@ export function renderHero(container) {
           量子计算正在重塑信息安全的边界。我们通过格密码、哈希树与纠错码，构建不可逾越的抗量子堡垒。
         </p>
         <div style="display: flex; gap: 20px;">
-          <button class="cta-button" onclick="window.goToPage(2)">Algorithm View</button>
-          <button class="cta-button" style="border-color: var(--accent-violet); color: var(--accent-violet)" onclick="window.goToPage(1)">Principles</button>
+          <button class="cta-button" onclick="document.getElementById('algorithms').scrollIntoView({behavior:'smooth'})">Algorithm View</button>
+          <button class="cta-button" style="border-color: var(--accent-violet); color: var(--accent-violet)" onclick="document.getElementById('principles').scrollIntoView({behavior:'smooth'})">Principles</button>
         </div>
       </div>
       <div style="flex: 1; height: 400px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 8px; position: relative;">

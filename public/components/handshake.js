@@ -24,7 +24,7 @@ export function renderHandshake(container) {
             Hybrid 模式允许在不破坏现有合规性的前提下，叠加抗量子保护，是目前全球范围内最稳健的迁移路径。
           </p>
         </div>
-        <span class="detail-jump" style="color: var(--accent-violet); margin-top: 32px;" onclick="window.openDetail('handshake')">Traffic Capture →</span>
+        <!-- Phase 2: 协议实验室详情将内联展示 -->
       </div>
     </div>
   `;
@@ -45,7 +45,7 @@ window.selectScenario = (id) => {
       </div>
     `;
   }
-  if (window.setCurrentSelection) window.setCurrentSelection("handshake", s.id);
+  // TODO: Phase 2 将在此展开场景详情
   
   document.querySelectorAll(".scenario-item").forEach(el => {
     const isTarget = el.innerText.includes(s.label);

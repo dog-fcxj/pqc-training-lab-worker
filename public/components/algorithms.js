@@ -5,7 +5,7 @@ export function renderAlgorithms(container) {
     <div class="card card-corners" style="display: grid; grid-template-rows: auto 1fr; gap: 48px; width: 100%; max-width: 1200px; min-height: 600px;">
       <div style="display: flex; justify-content: space-between; align-items: flex-end;">
         <h2 style="margin:0;">NIST 标准算法矩阵</h2>
-        <span class="detail-jump" onclick="window.openDetail('algorithm')">Benchmark Analysis →</span>
+        <span class="detail-jump" style="opacity:0.3; cursor:default;">Phase 2: 算法详情将内联展示</span>
       </div>
       <div id="algorithm-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; width: 100%;">
         ${algorithms.map(a => `
@@ -24,6 +24,6 @@ export function renderAlgorithms(container) {
 }
 
 window.selectAlgorithm = (id) => {
-  if (window.setCurrentSelection) window.setCurrentSelection("algorithm", id);
-  window.openDetail('algorithm');
+  // TODO: Phase 2 将在此展开算法详情面板
+  console.log('Selected algorithm:', id);
 };

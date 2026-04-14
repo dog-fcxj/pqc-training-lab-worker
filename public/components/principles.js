@@ -19,7 +19,7 @@ export function renderPrinciples(container) {
         </div>
         <div style="padding-top: 32px; display: flex; justify-content: space-between; align-items: flex-end;">
           <div id="principle-info"></div>
-          <span class="detail-jump" onclick="window.openDetail('principle')">Explore Math →</span>
+          <!-- Phase 2: 数学原理可视化将内联展示 -->
         </div>
       </div>
     </div>
@@ -61,7 +61,7 @@ window.selectPrinciple = (idx) => {
       </div>
     `;
   }
-  if (window.setCurrentSelection) window.setCurrentSelection("principle", p.id);
+  // TODO: Phase 2 将在此展开原理可视化
   
   // 切换高亮样式
   document.querySelectorAll(".principle-item").forEach((el, i) => {

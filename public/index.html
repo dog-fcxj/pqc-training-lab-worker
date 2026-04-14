@@ -3,45 +3,42 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>PQC Training Lab</title>
+    <title>后量子密码安全实验室 | PQC Training Lab</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <!-- 动态网格背景 -->
+    <!-- 动态背景 -->
     <div class="bg-grid-overlay"></div>
     <div id="data-streams" style="position: fixed; inset: 0; z-index: 0; pointer-events: none;"></div>
 
-    <!-- 极简侧边导航 -->
-    <nav class="view-nav">
-      <div class="nav-dot is-active" data-index="0" data-label="Hero"></div>
-      <div class="nav-dot" data-index="1" data-label="Principles"></div>
-      <div class="nav-dot" data-index="2" data-label="Algorithms"></div>
-      <div class="nav-dot" data-index="3" data-label="Deployment"></div>
+    <!-- 顶部固定导航栏 -->
+    <nav class="top-nav" id="top-nav">
+      <div class="nav-brand">
+        <span class="nav-logo">◈</span>
+        <span class="nav-title">PQC Lab</span>
+      </div>
+      <div class="nav-links">
+        <a href="#hero" class="nav-link" data-section="hero">首页</a>
+        <a href="#principles" class="nav-link" data-section="principles">数学原理</a>
+        <a href="#algorithms" class="nav-link" data-section="algorithms">算法实验室</a>
+        <a href="#protocols" class="nav-link" data-section="protocols">协议实验室</a>
+        <a href="#adoption" class="nav-link" data-section="adoption">现状仪表盘</a>
+        <a href="#migration" class="nav-link" data-section="migration">迁移路线图</a>
+      </div>
     </nav>
 
-    <!-- 详情浮层 (物理隔离，默认不可见) -->
-    <div id="detail-overlay" class="detail-overlay" style="visibility: hidden; pointer-events: none;">
-      <div style="max-width: 1200px; margin: 0 auto; position: relative;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px;">
-          <h2 id="overlay-title" style="margin:0; font-size: 42px; background: linear-gradient(to right, #fff, var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Technical Spec</h2>
-          <button class="cta-button" onclick="window.closeDetail()">Return</button>
-        </div>
-        <div id="detail-content" class="detail-content">
-          <!-- 内容动态注入 -->
-        </div>
-      </div>
-    </div>
-
-    <!-- 主翻页轴 -->
-    <div class="app-shell" id="app-shell">
-      <section class="content-section" id="section-0"></section>
-      <section class="content-section" id="section-1"></section>
-      <section class="content-section" id="section-2"></section>
-      <section class="content-section" id="section-3"></section>
-    </div>
+    <!-- 自然文档流主体 -->
+    <main>
+      <section id="hero" class="section section-hero"></section>
+      <section id="principles" class="section"></section>
+      <section id="algorithms" class="section"></section>
+      <section id="protocols" class="section"></section>
+      <section id="adoption" class="section"></section>
+      <section id="migration" class="section"></section>
+    </main>
 
     <script type="module" src="./app.js"></script>
   </body>

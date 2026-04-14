@@ -1,110 +1,48 @@
-import { detailViews } from './data.js';
-import { buildHeroNetwork, initDataStreams } from './visuals.js';
+import { initDataStreams } from './visuals.js';
 import { renderHero } from './components/hero.js';
 import { renderPrinciples } from './components/principles.js';
 import { renderAlgorithms } from './components/algorithms.js';
 import { renderHandshake } from './components/handshake.js';
+// Phase 3 占位
+// import { renderAdoption } from './components/adoption.js';
+// import { renderMigration } from './components/migration.js';
 
-let currentPage = 0;
-let isScrolling = false;
-const currentSelections = {
-  principle: "lattice",
-  algorithm: null,
-  handshake: "tls-hybrid"
+const sectionModules = {
+  hero: renderHero,
+  principles: renderPrinciples,
+  algorithms: renderAlgorithms,
+  protocols: renderHandshake,
+  // adoption: renderAdoption,
+  // migration: renderMigration,
 };
 
-const pageModules = [renderHero, renderPrinciples, renderAlgorithms, renderHandshake];
-
-function goToPage(idx) {
-  if (idx < 0 || idx >= pageModules.length) return;
-  currentPage = idx;
-  
-  // 1. 物理翻页
-  const shell = document.getElementById("app-shell");
-  shell.style.transform = `translateY(-${currentPage * 100}%)`;
-  
-  // 2. 动态渲染组件内容
-  const container = document.getElementById(`section-${idx}`);
-  if (container && !container.dataset.rendered) {
-    pageModules[idx](container);
-    container.dataset.rendered = "true";
-    if (idx === 0) buildHeroNetwork(); // 仅 Hero 需要重新构建网络
-  }
-
-  // 3. 更新导航状态
-  document.querySelectorAll(".nav-dot").forEach((dot, i) => {
-    dot.classList.toggle("is-active", i === currentPage);
+// IntersectionObserver: 懒加载渲染 + 导航高亮
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    const id = entry.target.id;
+    if (entry.isIntersecting && !entry.target.dataset.rendered && sectionModules[id]) {
+      sectionModules[id](entry.target);
+      entry.target.dataset.rendered = "true";
+    }
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.toggle('is-active', link.dataset.section === id);
+      });
+    }
   });
-  document.querySelectorAll(".content-section").forEach((sec, i) => {
-    sec.classList.toggle("is-active", i === currentPage);
-  });
-}
+}, { threshold: 0.3, rootMargin: '-80px 0px 0px 0px' });
 
-// 滚轮监听
-window.addEventListener("wheel", (e) => {
-  if (isScrolling) return;
-  if (Math.abs(e.deltaY) < 40) return;
-  isScrolling = true;
-  if (e.deltaY > 0) goToPage(currentPage + 1);
-  else goToPage(currentPage - 1);
-  setTimeout(() => isScrolling = false, 1000);
-}, { passive: true });
-
-// 详情页逻辑
-function openDetail(type) {
-  const overlay = document.getElementById("detail-overlay");
-  const content = document.getElementById("detail-content");
-  const title = document.getElementById("overlay-title");
-  const view = detailViews[type];
-  if (!view) return;
-
-  const selectedId = currentSelections[type] || null;
-  const sections = view.getSections(selectedId);
-
-  title.textContent = view.title;
-  overlay.classList.add("is-open");
-
-  content.innerHTML = `
-    <div class="detail-lead card card-corners">
-      <p class="detail-eyebrow">${view.eyebrow}</p>
-      <p class="detail-intro">${view.intro}</p>
-    </div>
-    ${sections.map((section) => `
-      <div class="detail-section">
-        <div class="detail-section-title">${section.title}</div>
-        <div class="detail-card-grid">
-          ${section.cards.map((card) => `
-            <article class="card card-corners detail-card">
-              <h3>${card.heading}</h3>
-              <p>${card.body}</p>
-            </article>
-          `).join("")}
-        </div>
-      </div>
-    `).join("")}
-  `;
-}
-
-function closeDetail() {
-  document.getElementById("detail-overlay").classList.remove("is-open");
-}
-
-function setCurrentSelection(type, id) {
-  currentSelections[type] = id;
-}
-
-// 暴露全局
-window.goToPage = goToPage;
-window.openDetail = openDetail;
-window.closeDetail = closeDetail;
-window.setCurrentSelection = setCurrentSelection;
-
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener('DOMContentLoaded', () => {
   initDataStreams();
-  // 初始渲染第一页
-  goToPage(0);
-  
-  document.querySelectorAll(".nav-dot").forEach(dot => {
-    dot.addEventListener("click", () => goToPage(parseInt(dot.dataset.index)));
+  document.querySelectorAll('.section').forEach(sec => observer.observe(sec));
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.getElementById(link.dataset.section);
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+  window.addEventListener('scroll', () => {
+    document.getElementById('top-nav').classList.toggle('scrolled', window.scrollY > 50);
   });
 });
