@@ -11,7 +11,7 @@ export function renderPrinciples(container) {
             }
             .principle-panel {
                 display: flex;
-                min-height: 460px;
+                min-height: 480px;
                 background: var(--glass-bg);
                 border: 1px solid var(--glass-border);
                 border-radius: 1.5rem;
@@ -33,12 +33,27 @@ export function renderPrinciples(container) {
                 padding: 2rem;
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
                 background: rgba(255, 255, 255, 0.02);
+                max-height: 520px;
+                box-sizing: border-box;
             }
             .step-content {
                 flex-grow: 1;
+                overflow-y: auto;
+                padding-right: 0.5rem;
             }
+            /* Custom Scrollbar for step-content */
+            .step-content::-webkit-scrollbar {
+                width: 4px;
+            }
+            .step-content::-webkit-scrollbar-track {
+                background: rgba(255, 255, 255, 0.05);
+            }
+            .step-content::-webkit-scrollbar-thumb {
+                background: var(--accent-cyan);
+                border-radius: 2px;
+            }
+
             .step-title {
                 font-size: 1.4rem;
                 font-weight: 700;
@@ -48,16 +63,37 @@ export function renderPrinciples(container) {
                 align-items: center;
                 gap: 0.5rem;
             }
+            .intro-text {
+                font-size: 0.9rem;
+                color: var(--accent-cyan);
+                background: rgba(34, 211, 238, 0.05);
+                padding: 1rem;
+                border-radius: 0.8rem;
+                margin-bottom: 1.2rem;
+                border-left: 3px solid var(--accent-cyan);
+                line-height: 1.5;
+            }
+            .principle-box {
+                font-size: 0.8rem;
+                color: #a5f3fc;
+                background: rgba(255, 255, 255, 0.03);
+                padding: 0.8rem;
+                border-radius: 0.5rem;
+                margin-bottom: 1.2rem;
+                line-height: 1.4;
+                border: 1px dashed rgba(34, 211, 238, 0.2);
+            }
             .step-desc {
-                font-size: 1rem;
+                font-size: 0.95rem;
                 color: var(--text-dim);
                 line-height: 1.7;
-                margin-bottom: 2rem;
+                margin-bottom: 1.5rem;
             }
             .step-actions {
                 display: flex;
                 gap: 1rem;
                 margin-top: 1rem;
+                margin-bottom: 1rem;
             }
             .btn-next {
                 padding: 0.7rem 1.5rem;
@@ -82,12 +118,12 @@ export function renderPrinciples(container) {
                 cursor: pointer;
             }
             .panel-footer {
-                margin-top: 2rem;
+                margin-top: auto;
                 padding-top: 1.5rem;
                 border-top: 1px solid rgba(255, 255, 255, 0.1);
             }
             .analogy-box {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
                 color: var(--text-dim);
                 font-style: italic;
                 margin-bottom: 1rem;
@@ -100,7 +136,7 @@ export function renderPrinciples(container) {
             }
             .algo-label {
                 font-family: 'JetBrains Mono', monospace;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
                 padding: 2px 8px;
                 background: rgba(255, 255, 255, 0.05);
                 border: 1px solid rgba(255, 255, 255, 0.1);
@@ -332,7 +368,8 @@ export function renderPrinciples(container) {
                 <div class="principle-tutorial">
                     <div class="step-content">
                         <div class="step-title" id="lattice-title">格密码探索</div>
-                        <div class="step-desc" id="lattice-desc">点击格点选择秘密位置以开始交互实验。</div>
+                        <div class="intro-text">格密码是当前最主流的抗量子公钥方案，用来替代未来可能被量子计算破解的传统算法。它的核心做法是：把秘密藏在一个带规则的点阵里，再故意加上一点噪声，让合法用户能解，攻击者却难以反推。</div>
+                        <div class="step-desc" id="lattice-desc">先把这张图当成「秘密位置地图」。现实中的格密码在高维空间里运算，这里用二维点阵做简化示意；每个格点都代表一个可能的秘密。先选一个点，再比较「暴露精确位置」和「加噪隐藏位置」的差别。</div>
                         <div class="step-actions">
                             <button class="btn-next" id="lattice-next" style="display:none">下一步</button>
                             <button class="btn-reset" id="lattice-reset">重置</button>
@@ -392,8 +429,10 @@ export function renderPrinciples(container) {
                 <div class="principle-tutorial">
                     <div class="step-content">
                         <div class="step-title">哈希树验证</div>
-                        <div class="step-desc" id="hash-desc">点击任意叶子节点开始追踪认证路径。</div>
+                        <div class="intro-text">Merkle 树会把很多数据块一层层哈希，最后压成一个根值。只要根值可信，验证者就能用很少的信息证明某个数据属于原始集合，并在数据被改动时立刻发现。</div>
+                        <div class="step-desc" id="hash-desc">先点任意一个叶子节点，看它如何沿着认证路径一路算到根。你会发现：验证一条数据，不需要整棵树，只需要这条路径上的兄弟节点和根值。</div>
                         <div class="trace-log" id="hash-log" style="display:none"></div>
+                        <div id="hash-tamper-guide" style="font-size: 0.85rem; color: var(--text-dim); margin: 1rem 0; font-style: italic;">现在试试篡改一个叶子，看看会发生什么。点击「篡改实验」后，观察被改的叶子、它的父节点，以及根节点会怎样连锁变化。</div>
                         <div class="step-actions">
                             <button class="btn-next" id="hash-tamper">篡改实验</button>
                             <button class="btn-reset" id="hash-reset">重置</button>
@@ -428,7 +467,10 @@ export function renderPrinciples(container) {
                 <div class="principle-tutorial">
                     <div class="step-content">
                         <div class="step-title">纠错码恢复</div>
-                        <div class="step-desc" id="code-desc">这是一个有效的 Hamming(15,11) 码。青色位是校验位（位置 1,2,4,8），白色位是数据位。点击任意一位翻转来模拟信道噪声。</div>
+                        <div class="intro-text">纠错码会在原始数据旁边附加少量校验信息，让接收方即使收到带噪声的比特，也能找出并修正少数错误。HQC 需要这种能力，因为它要从带噪码字里恢复正确消息，而攻击者却很难完成同样的解码。</div>
+                        <div class="principle-box">Hamming(15,11) 用 4 个校验位保护 11 个数据位。位置 1、2、4、8 的校验位各自检查一组比特；接收时重新计算这些检查，哪些组出错就记成一个二进制编号，这个编号正好就是出错位的位置。</div>
+
+                        <div class="step-desc" id="code-desc">下面这 15 位里，青色是校验位，白色是数据位。先任选一位翻转，模拟传输中出现 1 位错误，再点击「执行纠错」。</div>
                         <div class="step-actions">
                             <button class="btn-next" id="code-repair" style="display:none">执行纠错</button>
                             <button class="btn-reset" id="code-reset">重置</button>
@@ -472,7 +514,7 @@ function initLatticeInteraction(container) {
             d.innerHTML = '';
         });
         title.innerText = '格密码探索';
-        desc.innerText = '点击格点选择秘密位置以开始交互实验。';
+        desc.innerText = '先把这张图当成「秘密位置地图」。现实中的格密码在高维空间里运算，这里用二维点阵做简化示意；每个格点都代表一个可能的秘密。先选一个点，再比较「暴露精确位置」和「加噪隐藏位置」的差别。';
         nextBtn.style.display = 'none';
         shield.style.display = 'none';
     };
@@ -489,8 +531,8 @@ function initLatticeInteraction(container) {
         dot.innerHTML = `<span class="coord-label">(${x},${y})</span>`;
 
         step = 1;
-        title.innerText = 'Step 1: 经典密码';
-        desc.innerText = '🔓 经典密码就像在地图上标注精确坐标——知道算法就能直接算出位置。量子计算机可以用 Shor 算法在多项式时间内破解。';
+        title.innerText = 'Step 1：先看精确坐标';
+        desc.innerText = '你选的点就像把藏宝点精确标在地图上。对攻击者来说，目标很明确；在传统公钥算法里，量子计算机会让这种「从公开信息反推秘密」的过程更容易。';
         nextBtn.style.display = 'block';
         nextBtn.innerText = '下一步：加噪保护 →';
     });
@@ -498,8 +540,8 @@ function initLatticeInteraction(container) {
     nextBtn.addEventListener('click', () => {
         if (step === 1) {
             step = 2;
-            title.innerText = 'Step 2: 加噪保护';
-            desc.innerText = '🛡️ 格密码在秘密位置周围注入随机噪声——攻击者看到的是一团模糊区域，无法确定哪个才是真正的秘密点。这就是 LWE（Learning With Errors）的核心思想。';
+            title.innerText = 'Step 2：给答案加一点模糊';
+            desc.innerText = '现在给正确点周围加上一圈模糊线索，像把「就在这里」改成「应该在这片区域附近」。合法接收方知道怎样消掉这点误差，攻击者看到的却是一团难以分辨的候选点，这就是 LWE 的直觉。';
             
             // Add noise around secret
             const sx = secretIndex % 7;
@@ -515,8 +557,8 @@ function initLatticeInteraction(container) {
             nextBtn.innerText = '下一步：量子挑战 →';
         } else if (step === 2) {
             step = 3;
-            title.innerText = 'Step 3: 量子也无解';
-            desc.innerText = '🔒 即使量子计算机也无法从噪声中精确恢复秘密向量——最短向量问题（SVP）和最近向量问题（CVP）目前没有已知的量子多项式时间算法。这就是 ML-KEM 和 ML-DSA 的安全基础。';
+            title.innerText = 'Step 3：为什么这能抗量子';
+            desc.innerText = '攻击者真正要解决的，不再是读出一个精确坐标，而是从很多带误差的关系里找出隐藏的正确短向量。已知量子算法还不能高效完成这件事，所以格密码被认为能抵抗量子攻击。';
             shield.style.display = 'block';
             nextBtn.style.display = 'none';
         }
@@ -574,15 +616,18 @@ function initHashInteraction(container) {
             n.className = n.classList.contains('leaf') ? 'tree-node leaf' : 'tree-node';
             n.querySelector('.node-val').innerText = n.dataset.val;
         });
+        desc.innerText = '先点任意一个叶子节点，看它如何沿着认证路径一路算到根。你会发现：验证一条数据，不需要整棵树，只需要这条路径上的兄弟节点和根值。';
         desc.style.display = 'block';
         log.style.display = 'none';
         log.innerHTML = '';
+        container.querySelector('#hash-tamper-guide').style.display = 'block';
     };
 
     leaves.forEach(leaf => {
         leaf.addEventListener('click', async () => {
             reset();
             desc.style.display = 'none';
+            container.querySelector('#hash-tamper-guide').style.display = 'none';
             log.style.display = 'block';
             
             const id = leaf.id;
@@ -617,6 +662,7 @@ function initHashInteraction(container) {
 
     tamperBtn.addEventListener('click', () => {
         reset();
+        container.querySelector('#hash-tamper-guide').style.display = 'none';
         const l0 = container.querySelector('#node-l0');
         const h0 = container.querySelector('#node-h0');
         const root = container.querySelector('#node-root');
@@ -632,7 +678,8 @@ function initHashInteraction(container) {
         setTimeout(() => {
             root.querySelector('.node-val').innerText = 'dead';
             root.classList.add('error');
-            desc.innerText = '篡改一个叶子 → 整条路径的哈希全部改变 → 根值不再匹配 → 篡改被发现！';
+            desc.style.display = 'block';
+            desc.innerText = '当一个叶子被改掉时，它上面的父节点和根节点都会跟着变，因为这些值都是重新哈希出来的。验证者手里保存的仍是旧根值，所以一比对就能知道这份数据已经被篡改。';
         }, 1000);
     });
 
@@ -678,11 +725,10 @@ function initCodeInteraction(container) {
         
         const hasError = current.some((b, i) => b !== original[i]);
         if (hasError) {
-            const errorIdx = current.findIndex((b, i) => b !== original[i]);
-            desc.innerText = `⚡ 位 ${errorIdx + 1} 被翻转！信道噪声注入了 1 位错误。点击'纠错'按钮启动校验。`;
+            desc.innerText = `现在有 1 位被噪声翻转了。接下来系统会依次检查 P1、P2、P4、P8 各自负责的位组；这些检查结果组成的综合症，会告诉我们错误藏在哪一位。`;
             repairBtn.style.display = 'block';
         } else {
-            desc.innerText = `这是一个有效的 Hamming(15,11) 码。点击任意一位翻转来模拟信道噪声。`;
+            desc.innerText = `下面这 15 位里，青色是校验位，白色是数据位。先任选一位翻转，模拟传输中出现 1 位错误，再点击「执行纠错」。`;
             repairBtn.style.display = 'none';
         }
     });
@@ -724,7 +770,7 @@ function initCodeInteraction(container) {
         }
 
         const resultLine = container.querySelector('#syndrome-result');
-        resultLine.innerText = `📍 错误位置 = s8×8 + s4×4 + s2×2 + s1×1 = ${syndrome} → 第 ${syndrome} 位出错！`;
+        resultLine.innerText = `📍 综合症 = ${sResults.reverse().join('')} → 第 ${syndrome} 位出错！`;
         
         if (syndrome > 0) {
             await new Promise(r => setTimeout(r, 800));
@@ -733,7 +779,7 @@ function initCodeInteraction(container) {
             current[syndrome-1] = current[syndrome-1] === 0 ? 1 : 0;
             renderBits();
             bitContainer.querySelectorAll('.bit-box')[syndrome-1].classList.add('fixed');
-            desc.innerText = `✅ 纠错完成！Hamming 码通过校验矩阵精确定位并修复了 1 位错误。HQC 就是基于这种纠错能力构建密钥封装的。`;
+            desc.innerText = `综合症定位出错位后，只要把那一位翻回去，整串码字就会重新通过校验。你现在看到的，就是 HQC 依赖的核心直觉：合法接收方能从带噪数据中恢复正确信息。`;
         }
     });
 
@@ -742,6 +788,6 @@ function initCodeInteraction(container) {
         renderBits();
         calcPanel.style.display = 'none';
         repairBtn.style.display = 'none';
-        desc.innerText = `这是一个有效的 Hamming(15,11) 码。青色位是校验位（位置 1,2,4,8），白色位是数据位。点击任意一位翻转来模拟信道噪声。`;
+        desc.innerText = `下面这 15 位里，青色是校验位，白色是数据位。先任选一位翻转，模拟传输中出现 1 位错误，再点击「执行纠错」。`;
     });
 }
