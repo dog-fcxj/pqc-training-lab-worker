@@ -11,7 +11,6 @@ export function renderPrinciples(container) {
             }
             .principle-panel {
                 display: flex;
-                min-height: 480px;
                 background: var(--glass-bg);
                 border: 1px solid var(--glass-border);
                 border-radius: 1.5rem;
@@ -34,13 +33,13 @@ export function renderPrinciples(container) {
                 display: flex;
                 flex-direction: column;
                 background: rgba(255, 255, 255, 0.02);
-                max-height: 520px;
                 box-sizing: border-box;
             }
             .step-content {
                 flex-grow: 1;
                 overflow-y: auto;
                 padding-right: 0.5rem;
+                max-height: 300px;
             }
             /* Custom Scrollbar for step-content */
             .step-content::-webkit-scrollbar {
@@ -577,6 +576,8 @@ function initHashInteraction(container) {
     const resetBtn = container.querySelector('#hash-reset');
     const svg = container.querySelector('#tree-lines');
 
+    let lastClickedLeafId = 'node-l0';
+
     const drawLines = () => {
         svg.innerHTML = '';
         const connect = (id1, id2) => {
@@ -626,6 +627,7 @@ function initHashInteraction(container) {
     leaves.forEach(leaf => {
         leaf.addEventListener('click', async () => {
             reset();
+            lastClickedLeafId = leaf.id;
             desc.style.display = 'none';
             container.querySelector('#hash-tamper-guide').style.display = 'none';
             log.style.display = 'block';
@@ -663,16 +665,18 @@ function initHashInteraction(container) {
     tamperBtn.addEventListener('click', () => {
         reset();
         container.querySelector('#hash-tamper-guide').style.display = 'none';
-        const l0 = container.querySelector('#node-l0');
-        const h0 = container.querySelector('#node-h0');
+        
+        const leaf = container.querySelector(`#${lastClickedLeafId}`);
+        const parentId = (lastClickedLeafId === 'node-l0' || lastClickedLeafId === 'node-l1') ? 'node-h0' : 'node-h1';
+        const parent = container.querySelector(`#${parentId}`);
         const root = container.querySelector('#node-root');
 
-        l0.querySelector('.node-val').innerText = 'xxxx';
-        l0.classList.add('error');
+        leaf.querySelector('.node-val').innerText = 'xxxx';
+        leaf.classList.add('error');
         
         setTimeout(() => {
-            h0.querySelector('.node-val').innerText = 'beef';
-            h0.classList.add('error');
+            parent.querySelector('.node-val').innerText = 'beef';
+            parent.classList.add('error');
         }, 500);
 
         setTimeout(() => {
@@ -699,6 +703,7 @@ function initCodeInteraction(container) {
     // Bits:      0, 1, 1, 0, 0, 1, 1, 1, 0,  0,  1,  0,  1,  1,  0
     const original = [0, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 0];
     let current = [...original];
+    let flippedIndex = -1;
 
     const renderBits = () => {
         bitContainer.innerHTML = current.map((b, i) => {
@@ -720,7 +725,18 @@ function initCodeInteraction(container) {
         const box = e.target.closest('.bit-box');
         if (!box) return;
         const idx = parseInt(box.dataset.index);
-        current[idx] = current[idx] === 0 ? 1 : 0;
+        
+        if (flippedIndex === idx) {
+            current[idx] = original[idx];
+            flippedIndex = -1;
+        } else {
+            if (flippedIndex !== -1) {
+                current[flippedIndex] = original[flippedIndex];
+            }
+            current[idx] = current[idx] === 0 ? 1 : 0;
+            flippedIndex = idx;
+        }
+        
         renderBits();
         
         const hasError = current.some((b, i) => b !== original[i]);
@@ -777,6 +793,7 @@ function initCodeInteraction(container) {
             boxes[syndrome-1].classList.add('scanning');
             await new Promise(r => setTimeout(r, 800));
             current[syndrome-1] = current[syndrome-1] === 0 ? 1 : 0;
+            flippedIndex = -1;
             renderBits();
             bitContainer.querySelectorAll('.bit-box')[syndrome-1].classList.add('fixed');
             desc.innerText = `综合症定位出错位后，只要把那一位翻回去，整串码字就会重新通过校验。你现在看到的，就是 HQC 依赖的核心直觉：合法接收方能从带噪数据中恢复正确信息。`;
@@ -785,6 +802,7 @@ function initCodeInteraction(container) {
 
     resetBtn.addEventListener('click', () => {
         current = [...original];
+        flippedIndex = -1;
         renderBits();
         calcPanel.style.display = 'none';
         repairBtn.style.display = 'none';
