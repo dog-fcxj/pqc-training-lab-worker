@@ -31,12 +31,15 @@ export function renderPrinciples(container) {
             }
             .principle-tutorial {
                 flex: 0 0 40%;
-                padding: 2rem;
+                padding: 1.5rem;
+                padding-right: 2rem;
                 display: flex;
                 flex-direction: column;
                 background: rgba(255, 255, 255, 0.02);
                 box-sizing: border-box;
                 overflow-y: auto;
+                overflow-x: hidden;
+                word-break: break-word;
             }
             .step-content {
                 flex-grow: 1;
@@ -694,20 +697,25 @@ function initLatticeInteraction(container) {
         const isCorrect = is1D ? guess === stage.secret : (guess[0] === stage.secret[0] && guess[1] === stage.secret[1]);
         
         if (isExact && !isCorrect) {
-            // Bug 1: Handle wrong guess for exact stages
+            const answer = is1D ? stage.secret : `(${stage.secret[0]}, ${stage.secret[1]})`;
             revealBox.innerHTML = `
                 <div style="font-weight: bold; margin-bottom: 0.5rem; color: #f43f5e;">
-                    ❌ 不对哦，再想想！
+                    ❌ 不对哦！正确答案是 <span style="color: var(--accent-cyan)">${answer}</span>
                 </div>
-                <div style="font-size: 0.85rem; color: var(--text-dim);">${stage.hint}</div>
+                <div style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.5rem;">${stage.reveal}</div>
             `;
             revealBox.style.display = 'block';
             revealBox.style.background = 'rgba(244, 63, 94, 0.1)';
             revealBox.style.borderColor = 'rgba(244, 63, 94, 0.3)';
-            revealBox.style.color = '#f43f5e';
-            nextBtn.style.display = 'none';
-            
-            // Bug 3: Scroll to show feedback
+            nextBtn.style.display = 'block';
+            if (currentStageIndex === stages.length - 1) {
+                nextBtn.innerText = '实验完成 🎉';
+                nextBtn.onclick = null;
+                nextBtn.disabled = true;
+            } else {
+                nextBtn.innerText = '下一关 →';
+                nextBtn.onclick = () => { currentStageIndex++; renderStage(); };
+            }
             revealBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             return;
         }
