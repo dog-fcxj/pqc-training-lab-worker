@@ -716,7 +716,7 @@ function initLatticeInteraction(container) {
                 nextBtn.innerText = '下一关 →';
                 nextBtn.onclick = () => { currentStageIndex++; renderStage(); };
             }
-            revealBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             return;
         }
 
@@ -768,10 +768,7 @@ function initLatticeInteraction(container) {
         revealBox.style.color = '#10b981';
         
         nextBtn.style.display = 'block';
-        
-        // Bug 3: Scroll to revealBox
-        revealBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        
+
         if (currentStageIndex === stages.length - 1) {
             nextBtn.innerText = '实验完成 🎉';
             nextBtn.onclick = null;
@@ -783,6 +780,7 @@ function initLatticeInteraction(container) {
                 renderStage();
             };
         }
+        nextBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     };
 
     resetBtn.onclick = () => {
