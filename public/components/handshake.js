@@ -136,26 +136,89 @@ export function renderHandshake(container) {
                 .metric-title { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.25rem; }
                 .metric-value { font-size: 1.25rem; font-weight: bold; color: var(--accent-cyan); }
                 
-                .packet-visual {
+                .packet-comparison {
                     padding: 1.5rem;
                     background: rgba(255,255,255,0.03);
                     border-radius: 1rem;
+                    border: 1px solid var(--glass-border);
                 }
-                .packet-grid {
+                .packet-compare-grid {
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    gap: 1.5rem;
+                    margin-top: 1.2rem;
+                }
+                .packet-column {
                     display: flex;
-                    flex-wrap: wrap;
-                    gap: 4px;
-                    margin-top: 1rem;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.75rem;
+                    padding: 1rem;
+                    background: rgba(255,255,255,0.02);
+                    border-radius: 0.75rem;
+                    border: 1px solid transparent;
+                    transition: all 0.3s;
                 }
-                .packet-box {
-                    width: 12px;
-                    height: 12px;
-                    background: var(--accent-cyan);
-                    border-radius: 2px;
-                    opacity: 0.8;
+                .packet-column:hover {
+                    background: rgba(255,255,255,0.04);
+                    border-color: rgba(34, 211, 238, 0.2);
                 }
-                .packet-box.classic { background: var(--text-dim); }
-                .packet-box.extra { background: var(--accent-violet); }
+                .packet-title {
+                    font-size: 0.8rem;
+                    font-weight: bold;
+                    color: var(--text-dim);
+                    text-align: center;
+                    height: 2.4rem;
+                    display: flex;
+                    align-items: center;
+                }
+                .packet-bars {
+                    display: flex;
+                    gap: 1.25rem;
+                    height: 120px;
+                    align-items: flex-end;
+                    padding-bottom: 0.25rem;
+                    width: 100%;
+                    justify-content: center;
+                    border-bottom: 1px solid var(--glass-border);
+                }
+                .bar-group {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    gap: 0.4rem;
+                    height: 100%;
+                    justify-content: flex-end;
+                }
+                .bar-container {
+                    width: 24px;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column-reverse;
+                    background: rgba(255,255,255,0.05);
+                    border-radius: 3px 3px 0 0;
+                    overflow: hidden;
+                }
+                .bar-segment {
+                    width: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 0.6rem;
+                    font-weight: bold;
+                    color: white;
+                    overflow: hidden;
+                }
+                .bar-segment.classic { background: #64748b; }
+                .bar-segment.pq { background: var(--accent-cyan); }
+                .bar-label { font-size: 0.6rem; color: var(--text-dim); }
+                .bar-value { font-size: 0.7rem; font-weight: bold; }
+                .packet-total {
+                    font-size: 0.75rem;
+                    color: var(--accent-cyan);
+                    font-weight: bold;
+                    margin-top: 0.25rem;
+                }
 
                 .comparison-grid {
                     display: grid;
@@ -266,14 +329,83 @@ export function renderHandshake(container) {
                     </div>
                 </div>
 
-                <div class="packet-visual card-corners">
-                    <h4 style="margin-top:0">数据包大小可视化 (1方块 ≈ 32B)</h4>
-                    <div class="packet-grid">
-                        ${renderPacketBoxes(scenario.id)}
+                <div class="packet-comparison card-corners">
+                    <h4 style="margin-top:0">数据包大小对比</h4>
+                    <div class="packet-compare-grid">
+                        <!-- 经典 TLS 1.3 -->
+                        <div class="packet-column">
+                            <div class="packet-title">经典 TLS 1.3</div>
+                            <div class="packet-bars">
+                                <div class="bar-group">
+                                    <div class="bar-container">
+                                        <div class="bar-segment classic" style="height: 2.6%" title="32B"></div>
+                                    </div>
+                                    <div class="bar-label">C→S</div>
+                                    <div class="bar-value">32B</div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-container">
+                                        <div class="bar-segment classic" style="height: 2.6%" title="32B"></div>
+                                    </div>
+                                    <div class="bar-label">S→C</div>
+                                    <div class="bar-value">32B</div>
+                                </div>
+                            </div>
+                            <div class="packet-total">总额外: 0B</div>
+                        </div>
+
+                        <!-- 混合 TLS 1.3 -->
+                        <div class="packet-column">
+                            <div class="packet-title">混合 TLS 1.3</div>
+                            <div class="packet-bars">
+                                <div class="bar-group">
+                                    <div class="bar-container">
+                                        <div class="bar-segment classic" style="height: 2.6%" title="32B"></div>
+                                        <div class="bar-segment pq" style="height: 97.4%" title="1184B">1184</div>
+                                    </div>
+                                    <div class="bar-label">C→S</div>
+                                    <div class="bar-value">1216B</div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-container">
+                                        <div class="bar-segment classic" style="height: 2.6%" title="32B"></div>
+                                        <div class="bar-segment pq" style="height: 89.4%" title="1088B">1088</div>
+                                    </div>
+                                    <div class="bar-label">S→C</div>
+                                    <div class="bar-value">1120B</div>
+                                </div>
+                            </div>
+                            <div class="packet-total">总额外: +2272B</div>
+                        </div>
+
+                        <!-- IKEv2 + ML-KEM -->
+                        <div class="packet-column">
+                            <div class="packet-title">IKEv2 + ML-KEM</div>
+                            <div class="packet-bars">
+                                <div class="bar-group">
+                                    <div class="bar-container">
+                                        <div class="bar-segment classic" style="height: 2.6%" title="32B"></div>
+                                        <div class="bar-segment pq" style="height: 97.4%" title="1184B">1184</div>
+                                    </div>
+                                    <div class="bar-label">C→S</div>
+                                    <div class="bar-value">1216B</div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-container">
+                                        <div class="bar-segment classic" style="height: 2.6%" title="32B"></div>
+                                        <div class="bar-segment pq" style="height: 89.4%" title="1088B">1088</div>
+                                    </div>
+                                    <div class="bar-label">S→C</div>
+                                    <div class="bar-value">1120B</div>
+                                </div>
+                            </div>
+                            <div class="packet-total">总额外: +2272B</div>
+                        </div>
                     </div>
-                    <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-dim); display: flex; gap: 1.5rem">
-                        <span style="display:flex; align-items:center; gap:0.5rem"><div class="packet-box classic" style="width:10px; height:10px"></div> 经典 (X25519)</span>
-                        <span style="display:flex; align-items:center; gap:0.5rem"><div class="packet-box extra" style="width:10px; height:10px"></div> PQC 额外载荷 (ML-KEM)</span>
+                    
+                    <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-dim); display: flex; gap: 1.5rem; justify-content: center;">
+                        <span style="display:flex; align-items:center; gap:0.5rem"><div style="width:10px; height:10px; background:#64748b; border-radius:2px"></div> 经典载荷 (X25519)</span>
+                        <span style="display:flex; align-items:center; gap:0.5rem"><div style="width:10px; height:10px; background:var(--accent-cyan); border-radius:2px"></div> PQ 额外载荷 (ML-KEM)</span>
                     </div>
                 </div>
 
@@ -303,17 +435,6 @@ export function renderHandshake(container) {
         `;
 
         setupListeners();
-    }
-
-    function renderPacketBoxes(id) {
-        if (id === 'tls-classic') {
-            return `<div class="packet-box classic"></div>`;
-        }
-        const extra = id === 'tls-hybrid' ? 38 : 34;
-        return `
-            <div class="packet-box classic"></div>
-            ${Array(extra).fill(0).map(() => `<div class="packet-box extra"></div>`).join('')}
-        `;
     }
 
     function setupListeners() {
