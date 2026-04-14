@@ -1,71 +1,271 @@
 import { principles } from '../data.js';
 
 export function renderPrinciples(container) {
-  container.innerHTML = `
-    <div class="card card-corners" style="display: grid; grid-template-columns: 1fr 1.8fr; gap: 48px; width: 100%; max-width: 1200px;">
-      <div>
-        <h2 style="font-size: 32px; margin-bottom: 32px;">核心数学原理</h2>
-        <div id="principle-nav" style="display: grid; gap: 16px;">
-          ${principles.map((p, i) => `
-            <div class="principle-item" style="padding:16px; border:1px solid var(--glass-border); cursor:pointer; transition:0.3s;" onclick="window.selectPrinciple(${i})">
-              <strong style="color:var(--accent-cyan); font-size:13px; letter-spacing:0.1em;">${p.label.toUpperCase()}</strong>
-            </div>
-          `).join("")}
+    container.innerHTML = `
+        <style>
+            .principles-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2rem;
+                margin-top: 2rem;
+            }
+            .principle-card {
+                background: var(--glass-bg);
+                border: 1px solid var(--glass-border);
+                border-radius: 1rem;
+                padding: 1.5rem;
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+                transition: transform 0.3s ease;
+            }
+            .principle-card:hover {
+                transform: translateY(-5px);
+            }
+            .principle-header {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            .principle-title {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #fff;
+            }
+            .hard-problem-tag {
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 0.7rem;
+                color: var(--accent-cyan);
+                background: rgba(34, 211, 238, 0.1);
+                padding: 2px 6px;
+                border-radius: 4px;
+                align-self: flex-start;
+            }
+            .visual-area {
+                height: 180px;
+                background: rgba(0,0,0,0.2);
+                border-radius: 0.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+                overflow: hidden;
+            }
+            /* Lattice Visual */
+            .lattice-grid {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 12px;
+            }
+            .lattice-dot {
+                width: 6px;
+                height: 6px;
+                background: rgba(255,255,255,0.2);
+                border-radius: 50%;
+            }
+            .target-dot {
+                background: var(--accent-cyan);
+                box-shadow: 0 0 10px var(--accent-cyan);
+                position: relative;
+            }
+            .noise-cloud {
+                position: absolute;
+                width: 40px;
+                height: 40px;
+                background: radial-gradient(circle, rgba(34, 211, 238, 0.3) 0%, transparent 70%);
+                pointer-events: none;
+                animation: drift 4s infinite ease-in-out;
+            }
+            @keyframes drift {
+                0%, 100% { transform: translate(-10px, -10px); }
+                50% { transform: translate(10px, 10px); }
+            }
+
+            /* Merkle Tree Visual */
+            .merkle-tree {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1.5rem;
+                width: 100%;
+            }
+            .merkle-row {
+                display: flex;
+                gap: 1.5rem;
+                position: relative;
+            }
+            .merkle-node {
+                width: 24px;
+                height: 24px;
+                border: 1px solid var(--glass-border);
+                border-radius: 4px;
+                background: var(--glass-bg);
+                font-size: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .merkle-node.active {
+                background: var(--accent-violet);
+                border-color: var(--accent-violet);
+                box-shadow: 0 0 8px var(--accent-violet);
+            }
+
+            /* Code Visual */
+            .code-visual {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+                align-items: center;
+                width: 100%;
+            }
+            .codeword {
+                font-family: 'JetBrains Mono', monospace;
+                letter-spacing: 4px;
+                font-size: 1rem;
+                background: rgba(0,0,0,0.3);
+                padding: 8px 12px;
+                border-radius: 4px;
+            }
+            .bit-error { color: var(--accent-magenta); font-weight: bold; }
+            .bit-fixed { color: var(--accent-cyan); font-weight: bold; }
+            .code-btn {
+                font-size: 0.75rem;
+                padding: 4px 12px;
+                border-radius: 4px;
+                background: var(--accent-blue);
+                color: white;
+                border: none;
+                cursor: pointer;
+            }
+
+            .principle-footer {
+                margin-top: auto;
+            }
+            .analogy-text {
+                font-size: 0.85rem;
+                color: var(--text-dim);
+                line-height: 1.5;
+                font-style: italic;
+                margin-bottom: 1rem;
+            }
+            .algo-tags {
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+            }
+            .algo-tag {
+                font-size: 0.7rem;
+                padding: 2px 8px;
+                border-radius: 10px;
+                background: rgba(255,255,255,0.05);
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+        </style>
+        <div class="principles-grid">
+            ${principles.map(p => `
+                <div class="principle-card card-corners">
+                    <div class="principle-header">
+                        <span class="principle-title">${p.label}</span>
+                        <span class="hard-problem-tag">困难问题: ${p.hardProblem}</span>
+                    </div>
+                    
+                    <div class="visual-area" id="visual-${p.id}">
+                        ${renderVisual(p.visualType)}
+                    </div>
+
+                    <div class="principle-footer">
+                        <p class="analogy-text">"${p.analogy}"</p>
+                        <div class="algo-tags">
+                            ${p.algorithms.map(a => `<span class="algo-tag">${a.toUpperCase()}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
         </div>
-      </div>
-      <div style="display: grid; grid-template-rows: 1fr auto;">
-        <div id="principle-stage" style="border: 1px solid var(--glass-border); background: rgba(0,0,0,0.4); min-height: 320px; border-radius: 4px; display:grid; place-items:center; padding: 32px; box-sizing: border-box;">
-          <!-- 动态演示区 -->
-        </div>
-        <div style="padding-top: 32px; display: flex; justify-content: space-between; align-items: flex-end;">
-          <div id="principle-info"></div>
-          <!-- Phase 2: 数学原理可视化将内联展示 -->
-        </div>
-      </div>
-    </div>
-  `;
-  
-  // 初始化第一个
-  window.selectPrinciple(0);
+    `;
+
+    setupInteractions(container);
 }
 
-window.selectPrinciple = (idx) => {
-  const p = principles[idx];
-  const info = document.getElementById("principle-info");
-  const stage = document.getElementById("principle-stage");
-  if (info) {
-    info.innerHTML = `
-      <h3 style="margin:0; font-size:24px;">${p.label}</h3>
-      <p style="color:var(--text-dim); font-size:14px; margin-top:10px; line-height:1.6; max-width: 520px;">${p.brief}</p>
-    `;
-  }
-  if (stage) {
-    stage.innerHTML = `
-      <div style="display:grid; gap:24px; width:100%; max-width:540px;">
-        <div style="display:flex; justify-content:space-between; align-items:end; gap:24px;">
-          <div>
-            <p style="margin:0 0 12px 0; color:var(--accent-cyan); font-family:'JetBrains Mono'; font-size:11px; letter-spacing:0.18em;">MODEL CUE</p>
-            <div style="font-size:28px; font-weight:800; line-height:1.2;">${p.cue}</div>
-          </div>
-          <div style="width:88px; height:88px; border:1px solid var(--glass-border); border-radius:50%; display:grid; place-items:center; color:var(--accent-cyan); font-family:'JetBrains Mono'; font-size:12px;">
-            ${String(idx + 1).padStart(2, "0")}
-          </div>
-        </div>
-        <div style="display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px;">
-          ${p.metrics.map((metric) => `
-            <div style="border:1px solid var(--glass-border); background:rgba(255,255,255,0.02); padding:14px 12px; font-size:12px; line-height:1.6; color:var(--text-dim);">
-              ${metric}
+function renderVisual(type) {
+    if (type === 'lattice') {
+        return `
+            <div class="lattice-grid">
+                ${Array(25).fill(0).map((_, i) => `
+                    <div class="lattice-dot ${i === 12 ? 'target-dot' : ''}">
+                        ${i === 12 ? '<div class="noise-cloud"></div>' : ''}
+                    </div>
+                `).join('')}
             </div>
-          `).join("")}
-        </div>
-      </div>
-    `;
-  }
-  // TODO: Phase 2 将在此展开原理可视化
-  
-  // 切换高亮样式
-  document.querySelectorAll(".principle-item").forEach((el, i) => {
-    el.style.borderColor = i === idx ? 'var(--accent-cyan)' : 'var(--glass-border)';
-    el.style.background = i === idx ? 'rgba(34, 211, 238, 0.05)' : 'transparent';
-  });
-};
+        `;
+    } else if (type === 'merkle') {
+        return `
+            <div class="merkle-tree">
+                <div class="merkle-row">
+                    <div class="merkle-node" id="m-root">R</div>
+                </div>
+                <div class="merkle-row">
+                    <div class="merkle-node" id="m-1-0">H</div>
+                    <div class="merkle-node" id="m-1-1">H</div>
+                </div>
+                <div class="merkle-row">
+                    <div class="merkle-node leaf" data-idx="0">L</div>
+                    <div class="merkle-node leaf" data-idx="1">L</div>
+                    <div class="merkle-node leaf" data-idx="2">L</div>
+                    <div class="merkle-node leaf" data-idx="3">L</div>
+                </div>
+                <div style="font-size: 0.7rem; color: var(--text-dim)">点击叶子节点查看认证路径</div>
+            </div>
+        `;
+    } else if (type === 'code') {
+        return `
+            <div class="code-visual">
+                <div class="codeword" id="codeword-display">10110010110</div>
+                <button class="code-btn" id="code-action-btn">注入错误</button>
+            </div>
+        `;
+    }
+    return '';
+}
+
+function setupInteractions(container) {
+    // Merkle Tree Interaction
+    const leaves = container.querySelectorAll('.merkle-node.leaf');
+    leaves.forEach(leaf => {
+        leaf.addEventListener('click', () => {
+            const idx = parseInt(leaf.dataset.idx);
+            container.querySelectorAll('.merkle-node').forEach(n => n.classList.remove('active'));
+            leaf.classList.add('active');
+            
+            // Highlight path (simplified logic for 3 layers)
+            const parentIdx = Math.floor(idx / 2);
+            container.querySelector(`#m-1-${parentIdx}`).classList.add('active');
+            container.querySelector('#m-root').classList.add('active');
+        });
+    });
+
+    // Code Correction Interaction
+    const codeBtn = container.querySelector('#code-action-btn');
+    const display = container.querySelector('#codeword-display');
+    let state = 'normal';
+    const original = "10110010110";
+    
+    codeBtn.addEventListener('click', () => {
+        if (state === 'normal') {
+            display.innerHTML = `101<span class="bit-error">01</span>010110`;
+            codeBtn.innerText = '执行纠错';
+            state = 'error';
+        } else {
+            display.innerHTML = `101<span class="bit-fixed">10</span>010110`;
+            codeBtn.innerText = '重置';
+            state = 'fixed';
+        } else if (state === 'fixed') {
+            display.innerHTML = original;
+            codeBtn.innerText = '注入错误';
+            state = 'normal';
+        }
+    });
+}

@@ -3,17 +3,16 @@ import { renderHero } from './components/hero.js';
 import { renderPrinciples } from './components/principles.js';
 import { renderAlgorithms } from './components/algorithms.js';
 import { renderHandshake } from './components/handshake.js';
-// Phase 3 占位
-// import { renderAdoption } from './components/adoption.js';
-// import { renderMigration } from './components/migration.js';
+import { renderAdoption } from './components/adoption.js';
+import { renderMigration } from './components/migration.js';
 
 const sectionModules = {
   hero: renderHero,
   principles: renderPrinciples,
   algorithms: renderAlgorithms,
   protocols: renderHandshake,
-  // adoption: renderAdoption,
-  // migration: renderMigration,
+  adoption: renderAdoption,
+  migration: renderMigration,
 };
 
 // IntersectionObserver: 懒加载渲染 + 导航高亮
