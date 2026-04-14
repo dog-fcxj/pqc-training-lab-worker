@@ -184,22 +184,22 @@ function tryMlDsaSignature(A, t, s1, y, message) {
     for (let c = 0; c < 5; c += 1) {
         const z = addVectors(y, scaleVector(s1, c));
         const norm = infinityNorm(z);
-        const w = matMulMod(A, y, MLKEM_Q); // For demonstration, we use y to get w
-        const hashVal = simpleHash({ w, message }) % 5;
-        
-        const attemptData = { y: y.slice(), w, c: hashVal, z, norm, rejected: true };
+
+        // Use the SAME formula as verify: w' = A·z - t·c mod q
+        const wPrime = subVectorsMod(matMulMod(A, z, MLKEM_Q), scaleVector(t, c), MLKEM_Q);
+        const hashVal = simpleHash({ w: wPrime, message }) % 5;
+
+        const attemptData = { y: y.slice(), w: wPrime, c: hashVal, z, norm, rejected: true };
 
         if (norm > 6) {
             attempts.push(attemptData);
             continue;
         }
 
-        const wPrime = subVectorsMod(matMulMod(A, z, MLKEM_Q), scaleVector(t, hashVal), MLKEM_Q);
-
         if (hashVal === c) {
             attemptData.rejected = false;
             attempts.push(attemptData);
-            return { sig: { z, c: hashVal }, attempts };
+            return { sig: { z, c }, attempts };
         }
         attempts.push(attemptData);
     }
